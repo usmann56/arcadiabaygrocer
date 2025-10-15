@@ -105,7 +105,7 @@ class HomePage extends StatelessWidget {
               ),
             ),
 
-            // Bottom-left shopping cart icon (placeholder). No logic is attached yet.
+            // Bottom-left shopping cart icon: navigates to Add Items page (placeholder)
             Positioned(
               left: 0,
               bottom: 0,
@@ -114,12 +114,16 @@ class HomePage extends StatelessWidget {
                 child: _CornerIconButton(
                   key: const ValueKey('bottomLeftIcon'),
                   icon: Icons.add_shopping_cart_rounded,
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const AddItemsPage()),
+                    );
+                  },
                 ),
               ),
             ),
 
-            // Bottom-right barcode scanner icon (placeholder). No logic is attached yet.
+            // Bottom-right barcode scanner icon: navigates to Barcode Scanner page (placeholder)
             Positioned(
               right: 0,
               bottom: 0,
@@ -128,7 +132,13 @@ class HomePage extends StatelessWidget {
                 child: _CornerIconButton(
                   key: const ValueKey('bottomRightIcon'),
                   icon: Icons.barcode_reader,
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const BarcodeScannerPage(),
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
@@ -307,6 +317,42 @@ class _CornerIconButton extends StatelessWidget {
         constraints: const BoxConstraints(minWidth: 56, minHeight: 56),
         onPressed: onPressed,
         tooltip: 'Hover over (or long press) for button action',
+      ),
+    );
+  }
+}
+
+// Placeholder screen for adding items by searching.
+class AddItemsPage extends StatelessWidget {
+  const AddItemsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Add Items')),
+      body: const Center(
+        child: Text(
+          'Add Items screen placeholder\n(Here you will search to add items)',
+          textAlign: TextAlign.center,
+        ),
+      ),
+    );
+  }
+}
+
+// Placeholder screen for barcode scanning.
+class BarcodeScannerPage extends StatelessWidget {
+  const BarcodeScannerPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Barcode Scanner')),
+      body: const Center(
+        child: Text(
+          'Barcode Scanner screen placeholder\n(Here you will scan barcodes)',
+          textAlign: TextAlign.center,
+        ),
       ),
     );
   }
