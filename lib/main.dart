@@ -7,116 +7,307 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Arcadia Bay Grocer',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        // Default accents black; progress bar green
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.black,
+          brightness: Brightness.light,
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+        ),
+        iconTheme: const IconThemeData(color: Colors.black),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: Colors.black,
+            side: const BorderSide(color: Colors.black),
+          ),
+        ),
+        listTileTheme: const ListTileThemeData(
+          iconColor: Colors.black,
+          textColor: Colors.black,
+        ),
+        progressIndicatorTheme: const ProgressIndicatorThemeData(
+          color: Colors.green,
+        ),
+        useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const HomePage(title: 'Arcadia Bay Grocer'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
+class HomePage extends StatelessWidget {
+  const HomePage({super.key, required this.title});
 
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    // Responsive sizing so the layout looks consistent on phones and desktops.
+    final width = MediaQuery.of(context).size.width;
+    final double horizontalPadding = width < 600
+        ? 16
+        : (width < 1024)
+        ? 24
+        : 32;
+    const double maxContentWidth = 900;
+
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+      appBar: AppBar(title: Text(title)),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            // Main content centered with max width and adaptive padding
+            Align(
+              alignment: Alignment.topCenter,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: maxContentWidth),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Narrow progression tracker under the title
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: Column(
+                          children: const [
+                            // simulated progress for checklist progression bar.
+                            _ProgressTracker(progress: 0.45),
+                            SizedBox(height: 8),
+                            Text(
+                              'Progression bar placeholder here - currently at 45%',
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Narrow 'filter' container with four buttons
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 16),
+                        child: _ActionBar(),
+                      ),
+
+                      // Large space in the middle for grocery list
+                      const Expanded(child: _DataList()),
+
+                      // Bottom spacer so corner icons don't overlap end of the grocery list
+                      const SizedBox(height: 72),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            // Bottom-left shopping cart icon (placeholder). No logic is attached yet.
+            Positioned(
+              left: 0,
+              bottom: 0,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 32, bottom: 12),
+                child: _CornerIconButton(
+                  key: const ValueKey('bottomLeftIcon'),
+                  icon: Icons.add_shopping_cart_rounded,
+                  onPressed: () {},
+                ),
+              ),
+            ),
+
+            // Bottom-right barcode scanner icon (placeholder). No logic is attached yet.
+            Positioned(
+              right: 0,
+              bottom: 0,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 32, bottom: 12),
+                child: _CornerIconButton(
+                  key: const ValueKey('bottomRightIcon'),
+                  icon: Icons.barcode_reader,
+                  onPressed: () {},
+                ),
+              ),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+}
+
+class _ProgressTracker extends StatelessWidget {
+  const _ProgressTracker({required this.progress});
+
+  final double progress; // 0.0 - 1.0
+
+  @override
+  Widget build(BuildContext context) {
+    // Progression bar should be green
+    const color = Colors.green;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        height: 10,
+        decoration: BoxDecoration(
+          color: Theme.of(
+            context,
+          ).colorScheme.surfaceContainerHighest.withOpacity(0.6),
+        ),
+        child: LinearProgressIndicator(
+          value: progress,
+          color: color,
+          backgroundColor: Colors.transparent,
+          minHeight: 10,
+        ),
+      ),
+    );
+  }
+}
+
+class _ActionBar extends StatelessWidget {
+  const _ActionBar();
+  @override
+  Widget build(BuildContext context) {
+    // Four placeholder filter buttons.
+    final buttons = <Widget>[
+      // Button: Meats
+      _SmallButton(label: 'Meats', icon: Icons.agriculture, onPressed: () {}),
+      // Button: Produce
+      _SmallButton(label: 'Produce', icon: Icons.eco_sharp, onPressed: () {}),
+      // Button: Beverages
+      _SmallButton(
+        label: 'Beverages',
+        icon: Icons.local_drink,
+        onPressed: () {},
+      ),
+      // Button: Misc
+      _SmallButton(
+        label: 'Misc',
+        icon: Icons.question_mark_rounded,
+        onPressed: () {},
+      ),
+    ];
+
+    return SizedBox(
+      height: 44,
+      child: Row(
+        children: [
+          for (int i = 0; i < buttons.length; i++) ...[
+            Expanded(child: buttons[i]),
+            if (i != buttons.length - 1) const SizedBox(width: 8),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _SmallButton extends StatelessWidget {
+  const _SmallButton({
+    required this.label,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  final String label;
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    // Button widget for items in the filter row.
+    // Using a vertical (column) layout so the label has more room and doesn't overflow.
+    return OutlinedButton(
+      onPressed: onPressed,
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        visualDensity: VisualDensity.compact,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 18),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 12),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DataList extends StatelessWidget {
+  const _DataList();
+
+  @override
+  Widget build(BuildContext context) {
+    // Placeholder list of grocery items added to list
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemBuilder: (context, index) {
+        return ListTile(
+          title: Text('Item #${index + 1}'),
+          subtitle: const Text('Item details go here'),
+          // white on black background for icon colors
+          leading: const CircleAvatar(
+            backgroundColor: Colors.black,
+            child: Icon(Icons.shopping_bag, color: Colors.white),
+          ),
+          onTap: () {},
+        );
+      },
+      separatorBuilder: (_, __) => const Divider(height: 1),
+      itemCount: 5,
+    );
+  }
+}
+
+class _CornerIconButton extends StatelessWidget {
+  const _CornerIconButton({
+    super.key,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        // white on black background for icon colors
+        color: Colors.black,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      // Padding to add more room inside the pill around icon.
+      padding: const EdgeInsets.all(6), // was 6
+      // Actual corner icon button widget.
+      child: IconButton(
+        icon: Icon(icon, color: Colors.white),
+        // padding inside the icon.
+        padding: const EdgeInsets.all(12),
+        constraints: const BoxConstraints(minWidth: 56, minHeight: 56),
+        onPressed: onPressed,
+        tooltip: 'Hover over (or long press) for button action',
+      ),
     );
   }
 }
