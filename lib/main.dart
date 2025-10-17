@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'screens/add_item.dart';
+import 'screens/barcode_scanner.dart';
 
 void main() {
   runApp(const MyApp());
@@ -317,42 +319,6 @@ class _CornerIconButton extends StatelessWidget {
         constraints: const BoxConstraints(minWidth: 56, minHeight: 56),
         onPressed: onPressed,
         tooltip: 'Hover over (or long press) for button action',
-      ),
-    );
-  }
-}
-
-// Placeholder screen for adding items by searching.
-class AddItemsPage extends StatelessWidget {
-  const AddItemsPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Add Items')),
-      body: const Center(
-        child: Text(
-          'Add Items screen placeholder\n(Here you will search to add items)',
-          textAlign: TextAlign.center,
-        ),
-      ),
-    );
-  }
-}
-
-// Placeholder screen for barcode scanning.
-class BarcodeScannerPage extends StatelessWidget {
-  const BarcodeScannerPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Barcode Scanner')),
-      body: const Center(
-        child: Text(
-          'Barcode Scanner screen placeholder\n(Here you will scan barcodes)',
-          textAlign: TextAlign.center,
-        ),
       ),
     );
   }
