@@ -102,7 +102,7 @@ class _AddItemsPageState extends State<AddItemsPage> {
                         });
                       },
                     );
-                  }).toList(),
+                  }),
                 ],
               ),
             const SizedBox(height: 20),
