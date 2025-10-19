@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../components/category_selector.dart';
+import '../components/priority_selector.dart';
+import '../components/quantity_selector.dart';
 
 class AddItemsPage extends StatefulWidget {
   const AddItemsPage({super.key});
@@ -28,6 +31,15 @@ class _AddItemsPageState extends State<AddItemsPage> {
   }
 
   void _addToCart() {
+    if (_productName.isEmpty || _productDescription.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error: Product name or description is missing!'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text('$_productName added to cart!')));
@@ -172,158 +184,6 @@ class ProductDescription extends StatelessWidget {
             keyboardType: TextInputType.number,
             onChanged: (value) => onDescriptionChanged(value),
           ),
-        ),
-      ],
-    );
-  }
-}
-
-class CategorySelector extends StatelessWidget {
-  final String selectedCategory;
-  final ValueChanged<String> onCategorySelected;
-
-  const CategorySelector({
-    super.key,
-    required this.selectedCategory,
-    required this.onCategorySelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final categories = ['Meats', 'Produce', 'Beverages', 'Misc'];
-
-    return SizedBox(
-      width: double.infinity,
-      child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        elevation: 2,
-        margin: const EdgeInsets.only(bottom: 20),
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Text(
-                'Product Category',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                alignment: WrapAlignment.center,
-                spacing: 6,
-                children: categories.map((c) {
-                  final isSelected = selectedCategory == c;
-                  return ChoiceChip(
-                    label: Text(c, style: const TextStyle(fontSize: 13)),
-                    selected: isSelected,
-                    selectedColor: Colors.green.shade100,
-                    labelStyle: TextStyle(
-                      color: isSelected
-                          ? Colors.green.shade900
-                          : Colors.black87,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                    ),
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    visualDensity: VisualDensity.compact,
-                    onSelected: (_) => onCategorySelected(c),
-                  );
-                }).toList(),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class PrioritySelector extends StatelessWidget {
-  final String selectedPriority;
-  final ValueChanged<String> onPrioritySelected;
-
-  const PrioritySelector({
-    super.key,
-    required this.selectedPriority,
-    required this.onPrioritySelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final priorities = ['Urgent', 'Regular'];
-
-    return SizedBox(
-      width: double.infinity,
-      child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        elevation: 2,
-        margin: const EdgeInsets.only(bottom: 20),
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                'Product Priority',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 10,
-                children: priorities.map((p) {
-                  final isSelected = selectedPriority == p;
-                  return ChoiceChip(
-                    label: Text(p),
-                    selected: isSelected,
-                    selectedColor: Colors.blue.shade100,
-                    labelStyle: TextStyle(
-                      color: isSelected ? Colors.blue.shade900 : Colors.black87,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                    ),
-                    onSelected: (_) => onPrioritySelected(p),
-                  );
-                }).toList(),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class ProductQuantitySelector extends StatelessWidget {
-  final int quantity;
-  final VoidCallback onIncrement;
-  final VoidCallback onDecrement;
-
-  const ProductQuantitySelector({
-    super.key,
-    required this.quantity,
-    required this.onIncrement,
-    required this.onDecrement,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        IconButton(
-          icon: const Icon(Icons.remove_circle_outline),
-          onPressed: onDecrement,
-        ),
-        Text(
-          '$quantity',
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        IconButton(
-          icon: const Icon(Icons.add_circle_outline),
-          onPressed: onIncrement,
         ),
       ],
     );
