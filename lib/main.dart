@@ -108,35 +108,33 @@ class _HomePageState extends State<HomePage> {
   /**
    * Navigates to the Add Item screen
    * 
-   * Refreshes cart when user returns if they added something
+   * Always refreshes cart when user returns to ensure it's up-to-date
    */
   Future<void> _navigateToAddItem() async {
-    final result = await Navigator.push(
+    await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const AddItemsPage()),
     );
     
-    if (result == true) {
-      // Reload cart items if something was added
-      _loadCartItems();
-    }
+    // Always reload cart items when returning from add item screen
+    // This ensures the main screen shows the most current cart state
+    _loadCartItems();
   }
 
   /**
    * Navigates to the Barcode Scanner screen
    * 
-   * Refreshes cart when user returns if they scanned and added something
+   * Always refreshes cart when user returns to ensure it's up-to-date
    */
   Future<void> _navigateToBarcode() async {
-    final result = await Navigator.push(
+    await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const BarcodeScannerPage()),
     );
     
-    if (result == true) {
-      // Reload cart items if something was added
-      _loadCartItems();
-    }
+    // Always reload cart items when returning from barcode scanner
+    // This ensures the main screen shows the most current cart state
+    _loadCartItems();
   }
 
   @override

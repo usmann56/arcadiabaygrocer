@@ -132,23 +132,86 @@ class _AddItemsPageState extends State<AddItemsPage> {
     if (_quantity > 1) setState(() => _quantity--);
   }
 
-  void _addToCart() {
-    if (_productName.isEmpty || _productDescription.isEmpty) {
+  /**
+   * Adds the selected item to the shopping cart
+   * 
+   * This function:
+   * 1. Validates that required fields are filled
+   * 2. Adds the item to the cart database
+   * 3. Shows a success message
+   * 4. Returns to main screen so user can see updated cart
+   */
+  Future<void> _addToCart() async {
+    // Validate required fields
+    if (_productName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Error: Product name or description is missing!'),
+          content: Text('Please enter a product name'),
           backgroundColor: Colors.red,
         ),
       );
       return;
     }
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('$_productName added to cart!')));
-    // TODO: Implement actual add to cart logic.
-    debugPrint(
-      'Added $_productName to cart quantity $_quantity - Category: $_selectedCategory, Priority: $_selectedPriority, Description: $_productDescription',
-    );
+
+    if (_quantity <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a quantity greater than 0'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    try {
+      // Show loading state while adding to cart
+      setState(() {
+        _isLoading = true;
+      });
+
+      // Add item to cart using the cart service
+      await _cartHelper.addToCartByName(
+        _productName,
+        price: _selectedGroceryItem?.price ?? 0.0,
+        quantity: _quantity,
+        category: _selectedCategory.toLowerCase(),
+        priority: _selectedPriority.toLowerCase(), 
+        description: _productDescription.isEmpty ? null : _productDescription,
+      );
+
+      // If we have a selected grocery item and it doesn't have a category,
+      // save the user's category choice for future searches
+      if (_selectedGroceryItem != null && _selectedGroceryItem!.category == null) {
+        await GroceryItemsDatabase.assignCategoryToItem(
+          _selectedGroceryItem!.id!,
+          _selectedCategory.toLowerCase(),
+        );
+      }
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$_productName added to cart!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      // Return to main screen with success indicator
+      // This tells the main screen to refresh the cart
+      Navigator.of(context).pop(true);
+      
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error adding to cart: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
