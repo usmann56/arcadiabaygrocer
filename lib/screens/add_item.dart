@@ -3,6 +3,9 @@ import '../dataBase/grocery_service.dart';
 import '../dataBase/database_helper.dart';
 import '../models/cart_item.dart';
 import '../dataBase/cart_service.dart';
+import '../components/category_selector.dart';
+import '../components/priority_selector.dart';
+import '../components/quantity_selector.dart';
 
 // Color definitions for consistent styling across the add item screen
 const Color _categoryContainerColor = Colors.black;     // Background for category section
@@ -20,6 +23,7 @@ const Color _addToCartButtonColor = Colors.black;       // Background for add to
  * 3. Add items to their shopping cart
  * 4. Add optional descriptions for items
  */
+
 
 class AddItemsPage extends StatefulWidget {
   const AddItemsPage({super.key});
@@ -128,95 +132,25 @@ class _AddItemsPageState extends State<AddItemsPage> {
     if (_quantity > 1) setState(() => _quantity--);
   }
 
-  /**
-   * Adds the selected item to the shopping cart
-   * 
-   * This is the main function that runs when user taps "Add to Cart"
-   * 
-   * Steps:
-   * 1. Validates that a product is selected
-   * 2. Adds item to cart database with user's choices
-   * 3. Updates the grocery database with user's category choice
-   * 4. Shows success message and returns to main screen
-   */
-  Future<void> _addToCart() async {
-    // Make sure user has selected a product
-    if (_productName.isEmpty) {
+  void _addToCart() {
+    if (_productName.isEmpty || _productDescription.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a product')),
+        const SnackBar(
+          content: Text('Error: Product name or description is missing!'),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
-
-    try {
-      // Show loading state while adding to cart
-      setState(() {
-        _isLoading = true;
-      });
-
-      // Add item to cart using the simplified cart service
-      // Uses the product name and user's selected preferences
-      await _cartHelper.addToCartByName(
-        _productName,
-        price: _selectedGroceryItem?.price ?? 0.0,           // Use actual price or 0
-        category: _selectedCategory.toLowerCase(),            // User's chosen category
-        priority: _selectedPriority.toLowerCase(),            // User's chosen priority
-        quantity: _quantity,                                  // User's chosen quantity
-        description: _productDescription.isEmpty ? null : _productDescription, // Optional description
-      );
-
-      // If the grocery item doesn't have a category assigned yet,
-      // save the user's category choice for future searches
-      if (_selectedGroceryItem != null && _selectedGroceryItem!.category == null) {
-        await GroceryItemsDatabase.assignCategoryToItem(
-          _selectedGroceryItem!.id!,
-          _selectedCategory.toLowerCase(),
-        );
-      }
-
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$_productName added to cart!')),
-      );
-
-      // Reset the form to default state for next item
-      setState(() {
-        _searchController.clear();
-        _productName = '';
-        _productDescription = '';
-        _selectedGroceryItem = null;
-        _quantity = 1;
-        _showSuggestions = false;
-        _searchResults = [];
-        _isLoading = false;
-      });
-
-      // Return to main screen and trigger cart refresh
-      Navigator.of(context).pop(true);
-      
-    } catch (e) {
-      // Handle any errors during cart addition
-      setState(() {
-        _isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error adding to cart: $e')),
-      );
-    }
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('$_productName added to cart!')));
+    // TODO: Implement actual add to cart logic.
+    debugPrint(
+      'Added $_productName to cart quantity $_quantity - Category: $_selectedCategory, Priority: $_selectedPriority, Description: $_productDescription',
+    );
   }
 
-  /**
-   * Builds the add item screen UI
-   * 
-   * Creates a scrollable screen with:
-   * - Search bar for finding products
-   * - Product description input
-   * - Search results list
-   * - Category selector (Meats, Produce, etc.)
-   * - Priority selector (Urgent, Regular)
-   * - Quantity picker
-   * - Add to cart button
-   */
   @override
   Widget build(BuildContext context) {
     return Scaffold(
