@@ -31,6 +31,15 @@ class _AddItemsPageState extends State<AddItemsPage> {
   }
 
   void _addToCart() {
+    if (_productName.isEmpty || _productDescription.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error: Product name or description is missing!'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text('$_productName added to cart!')));
