@@ -35,8 +35,16 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
 
+  # Camera and barcode scanning dependencies
+  camera: ^0.10.5+9
   mobile_scanner: ^6.0.0
   http: ^1.2.0
+  permission_handler: ^11.0.1
+
+  # Database dependencies
+  sqflite: ^2.2.2
+  path: ^1.8.2
+  path_provider: ^2.0.11
 
 dev_dependencies:
   flutter_test:
