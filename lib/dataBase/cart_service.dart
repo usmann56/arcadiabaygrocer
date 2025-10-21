@@ -167,6 +167,28 @@ class CartHelper {
   }
 
   /**
+   * Gets cart items filtered by category
+   * If category is empty, returns all items
+   */
+  Future<List<CartItem>> getCartItemsByCategory(String category) async {
+    final db = await database;
+
+    if (category.isEmpty) {
+      return await getCartItems();
+    }
+
+    final List<Map<String, dynamic>> maps = await db.query(
+      'cart_items',
+      where: 'category = ?',
+      whereArgs: [category.toLowerCase()],
+    );
+
+    return List.generate(maps.length, (i) {
+      return CartItem.fromMap(maps[i]);
+    });
+  }
+
+  /**
    * Removes an item completely from the cart
    * 
    * This deletes the entire cart entry for the given item ID.

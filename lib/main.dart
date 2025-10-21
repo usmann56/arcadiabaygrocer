@@ -80,17 +80,18 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _loadCartItems(); // Load cart items when screen opens
+    _loadCartItems(''); // Load cart items when screen opens
   }
 
   /**
    * Loads cart items from the database
    * 
    * Updates the UI to show current cart contents or handles errors gracefully
+   * category filter: empty string loads all items
    */
-  Future<void> _loadCartItems() async {
+  Future<void> _loadCartItems(String category) async {
     try {
-      final items = await _cartHelper.getCartItems();
+      final items = await _cartHelper.getCartItemsByCategory(category);
       setState(() {
         _cartItems = items;
         _isLoading = false;
@@ -118,7 +119,7 @@ class _HomePageState extends State<HomePage> {
 
     // Always reload cart items when returning from add item screen
     // This ensures the main screen shows the most current cart state
-    _loadCartItems();
+    _loadCartItems('');
   }
 
   /**
@@ -134,7 +135,7 @@ class _HomePageState extends State<HomePage> {
 
     // Always reload cart items when returning from barcode scanner
     // This ensures the main screen shows the most current cart state
-    _loadCartItems();
+    _loadCartItems('');
   }
 
   @override
@@ -181,10 +182,7 @@ class _HomePageState extends State<HomePage> {
                       // Narrow 'filter' container with four buttons
                       Padding(
                         padding: const EdgeInsets.only(bottom: 16),
-                        child: _ActionBar(
-                          onAddItemPressed: _navigateToAddItem,
-                          onBarcodePressed: _navigateToBarcode,
-                        ),
+                        child: _ActionBar(loadCartItems: _loadCartItems),
                       ),
 
                       // Large space in the middle for grocery list
@@ -192,7 +190,7 @@ class _HomePageState extends State<HomePage> {
                         child: _DataList(
                           cartItems: _cartItems,
                           isLoading: _isLoading,
-                          onItemRemoved: _loadCartItems,
+                          onItemRemoved: () => _loadCartItems(''),
                         ),
                       ),
 
@@ -267,42 +265,73 @@ class _ProgressTracker extends StatelessWidget {
   }
 }
 
-class _ActionBar extends StatelessWidget {
-  const _ActionBar({this.onAddItemPressed, this.onBarcodePressed});
+class _ActionBar extends StatefulWidget {
+  const _ActionBar({this.loadCartItems});
+  final Future<void> Function(String category)? loadCartItems;
 
-  final VoidCallback? onAddItemPressed;
-  final VoidCallback? onBarcodePressed;
+  @override
+  State<_ActionBar> createState() => _ActionBarState();
+}
+
+class _ActionBarState extends State<_ActionBar> {
+  String? _selectedCategory;
+
+  Future<void> _handleCategoryTap(String category) async {
+    // Toggle logic
+    // Need to call load items with empty steing if category is deselected
+    final isSameCategory = _selectedCategory == category;
+
+    setState(() {
+      _selectedCategory = isSameCategory ? null : category;
+    });
+
+    // Call the provided function with empty string if deselected
+    if (widget.loadCartItems != null) {
+      await widget.loadCartItems!(isSameCategory ? '' : category);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Four placeholder filter buttons.
-    final buttons = <Widget>[
-      // Button: Meats
-      _SmallButton(label: 'Meats', icon: Icons.agriculture, onPressed: () {}),
-      // Button: Produce
-      _SmallButton(label: 'Produce', icon: Icons.eco_sharp, onPressed: () {}),
-      // Button: Beverages
-      _SmallButton(
-        label: 'Beverages',
-        icon: Icons.local_drink,
-        onPressed: () {},
-      ),
-      // Button: Misc
-      _SmallButton(
-        label: 'Misc',
-        icon: Icons.question_mark_rounded,
-        onPressed: () {},
-      ),
-    ];
-
     return SizedBox(
       height: 44,
       child: Row(
         children: [
-          for (int i = 0; i < buttons.length; i++) ...[
-            Expanded(child: buttons[i]),
-            if (i != buttons.length - 1) const SizedBox(width: 8),
-          ],
+          Expanded(
+            child: _SmallButton(
+              label: 'Meats',
+              icon: Icons.agriculture,
+              isSelected: _selectedCategory == 'meats',
+              onPressed: () => _handleCategoryTap('meats'),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: _SmallButton(
+              label: 'Produce',
+              icon: Icons.eco_sharp,
+              isSelected: _selectedCategory == 'produce',
+              onPressed: () => _handleCategoryTap('produce'),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: _SmallButton(
+              label: 'Beverages',
+              icon: Icons.local_drink,
+              isSelected: _selectedCategory == 'beverages',
+              onPressed: () => _handleCategoryTap('beverages'),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: _SmallButton(
+              label: 'Misc',
+              icon: Icons.question_mark_rounded,
+              isSelected: _selectedCategory == 'misc',
+              onPressed: () => _handleCategoryTap('misc'),
+            ),
+          ),
         ],
       ),
     );
@@ -314,19 +343,27 @@ class _SmallButton extends StatelessWidget {
     required this.label,
     required this.icon,
     required this.onPressed,
+    this.isSelected = false,
   });
 
   final String label;
   final IconData icon;
   final VoidCallback onPressed;
+  final bool isSelected;
 
   @override
   Widget build(BuildContext context) {
-    // Button widget for items in the filter row.
-    // Using a vertical (column) layout so the label has more room and doesn't overflow.
     return OutlinedButton(
       onPressed: onPressed,
       style: OutlinedButton.styleFrom(
+        backgroundColor: isSelected
+            ? Theme.of(context).colorScheme.primary.withOpacity(0.15)
+            : Colors.transparent,
+        side: BorderSide(
+          color: isSelected
+              ? Theme.of(context).colorScheme.primary
+              : Colors.grey.shade400,
+        ),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         visualDensity: VisualDensity.compact,
       ),
@@ -334,14 +371,25 @@ class _SmallButton extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 18),
+          Icon(
+            icon,
+            size: 18,
+            color: isSelected
+                ? Theme.of(context).colorScheme.primary
+                : Colors.black87,
+          ),
           const SizedBox(height: 4),
           Text(
             label,
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 12),
+            style: TextStyle(
+              fontSize: 12,
+              color: isSelected
+                  ? Theme.of(context).colorScheme.primary
+                  : Colors.black87,
+            ),
           ),
         ],
       ),
