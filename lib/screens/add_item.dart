@@ -8,11 +8,14 @@ import '../components/priority_selector.dart';
 import '../components/quantity_selector.dart';
 
 // Color definitions for consistent styling across the add item screen
-const Color _categoryContainerColor = Colors.black;     // Background for category section
-const Color _categoryTextColor = Colors.white;          // Text color in category section
-const Color _priorityContainerColor = Colors.black;     // Background for priority section
-const Color _priorityTextColor = Colors.white;          // Text color in priority section
-const Color _addToCartButtonColor = Colors.black;       // Background for add to cart button
+const Color _categoryContainerColor =
+    Colors.black; // Background for category section
+const Color _categoryTextColor = Colors.white; // Text color in category section
+const Color _priorityContainerColor =
+    Colors.black; // Background for priority section
+const Color _priorityTextColor = Colors.white; // Text color in priority section
+const Color _addToCartButtonColor =
+    Colors.black; // Background for add to cart button
 
 /**
  * AddItemsPage - Screen where users search for and add items to their cart
@@ -23,7 +26,6 @@ const Color _addToCartButtonColor = Colors.black;       // Background for add to
  * 3. Add items to their shopping cart
  * 4. Add optional descriptions for items
  */
-
 
 class AddItemsPage extends StatefulWidget {
   const AddItemsPage({super.key});
@@ -45,18 +47,21 @@ class _AddItemsPageState extends State<AddItemsPage> {
   // Controllers and services
   final TextEditingController _searchController = TextEditingController();
   final CartHelper _cartHelper = CartHelper();
+  final TextEditingController _priceController = TextEditingController();
 
   // User input state variables
-  String _productDescription = '';        // Optional description user can add
-  String _productName = '';              // Name of the selected product
-  String _selectedCategory = 'Meats';    // User's chosen category (default: Meats)
-  String _selectedPriority = 'Urgent';   // User's chosen priority (default: Urgent)
-  int _quantity = 0;                     // How many items to buy (starts at 0)
+  String _productDescription = ''; // Optional description user can add
+  String _productName = ''; // Name of the selected product
+  double _productPrice = 0.0; // Price of the selected product
+  String _selectedCategory = 'Meats'; // User's chosen category (default: Meats)
+  String _selectedPriority =
+      'Urgent'; // User's chosen priority (default: Urgent)
+  int _quantity = 0; // How many items to buy (starts at 0)
 
   // UI state variables
-  bool _showSuggestions = false;         // Whether to show search results
-  bool _isLoading = false;               // Whether we're currently loading something
-  GroceryItem? _selectedGroceryItem;     // The product selected from search results
+  bool _showSuggestions = false; // Whether to show search results
+  bool _isLoading = false; // Whether we're currently loading something
+  GroceryItem? _selectedGroceryItem; // The product selected from search results
 
   // Database search results
   List<GroceryItem> _searchResults = []; // List of products matching search
@@ -98,7 +103,8 @@ class _AddItemsPageState extends State<AddItemsPage> {
       final results = await GroceryItemsDatabase.searchItems(query);
       setState(() {
         _searchResults = results;
-        _showSuggestions = results.isNotEmpty; // Only show results if we found something
+        _showSuggestions =
+            results.isNotEmpty; // Only show results if we found something
         _isLoading = false;
       });
     } catch (e) {
@@ -107,9 +113,9 @@ class _AddItemsPageState extends State<AddItemsPage> {
         _isLoading = false;
         _showSuggestions = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error searching products: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error searching products: $e')));
     }
   }
 
@@ -172,16 +178,17 @@ class _AddItemsPageState extends State<AddItemsPage> {
       // Add item to cart using the cart service
       await _cartHelper.addToCartByName(
         _productName,
-        price: _selectedGroceryItem?.price ?? 0.0,
+        price: _productPrice,
         quantity: _quantity,
         category: _selectedCategory.toLowerCase(),
-        priority: _selectedPriority.toLowerCase(), 
+        priority: _selectedPriority.toLowerCase(),
         description: _productDescription.isEmpty ? null : _productDescription,
       );
 
       // If we have a selected grocery item and it doesn't have a category,
       // save the user's category choice for future searches
-      if (_selectedGroceryItem != null && _selectedGroceryItem!.category == null) {
+      if (_selectedGroceryItem != null &&
+          _selectedGroceryItem!.category == null) {
         await GroceryItemsDatabase.assignCategoryToItem(
           _selectedGroceryItem!.id!,
           _selectedCategory.toLowerCase(),
@@ -199,12 +206,11 @@ class _AddItemsPageState extends State<AddItemsPage> {
       // Return to main screen with success indicator
       // This tells the main screen to refresh the cart
       Navigator.of(context).pop(true);
-      
     } catch (e) {
       setState(() {
         _isLoading = false;
       });
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error adding to cart: $e'),
@@ -231,11 +237,13 @@ class _AddItemsPageState extends State<AddItemsPage> {
                 hintText: 'Enter product name',
                 prefixIcon: const Icon(Icons.search),
                 // Show loading spinner while searching
-                suffixIcon: _isLoading ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ) : null,
+                suffixIcon: _isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : null,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -260,11 +268,26 @@ class _AddItemsPageState extends State<AddItemsPage> {
             const SizedBox(height: 20),
 
             // Product Description - optional text field for additional notes
-            ProductDescription(
-              onDescriptionChanged: (value) {
+            LabeledInputField(
+              label: 'Product Description',
+              hint: 'Enter product description',
+              onChanged: (value) {
                 setState(() {
                   _productDescription = value;
-                  _showSuggestions = true; // Show suggestions when user adds description
+                });
+              },
+            ),
+            const SizedBox(height: 20),
+
+            // Product Price - text field for product price - keybord type number
+            LabeledInputField(
+              label: 'Product Price',
+              hint: 'Enter produce price',
+              keyboardType: TextInputType.number,
+              controller: _priceController,
+              onChanged: (value) {
+                setState(() {
+                  _productPrice = double.tryParse(value) ?? 0.0;
                 });
               },
             ),
@@ -293,12 +316,12 @@ class _AddItemsPageState extends State<AddItemsPage> {
                           subtitle: Text('\$${item.price.toStringAsFixed(2)}'),
                           // Show checkmark if this item is selected, plus icon if not
                           trailing: Icon(
-                            _selectedGroceryItem?.id == item.id 
-                              ? Icons.check_circle 
-                              : Icons.add_circle_outline,
-                            color: _selectedGroceryItem?.id == item.id 
-                              ? Colors.green 
-                              : Colors.black,
+                            _selectedGroceryItem?.id == item.id
+                                ? Icons.check_circle
+                                : Icons.add_circle_outline,
+                            color: _selectedGroceryItem?.id == item.id
+                                ? Colors.green
+                                : Colors.black,
                           ),
                           // When user taps an item, select it and hide suggestions
                           onTap: () {
@@ -307,6 +330,9 @@ class _AddItemsPageState extends State<AddItemsPage> {
                               _productName = item.name;
                               _searchController.text = item.name;
                               _showSuggestions = false;
+                              _productPrice = item.price;
+                              _priceController.text = _productPrice
+                                  .toStringAsFixed(2);
                             });
                           },
                         );
@@ -352,8 +378,8 @@ class _AddItemsPageState extends State<AddItemsPage> {
             // Quantity Selector - let user choose how many items to buy
             ProductQuantitySelector(
               quantity: _quantity,
-              onIncrement: _increment,   // Increase quantity by 1
-              onDecrement: _decrement,   // Decrease quantity by 1 (min 0)
+              onIncrement: _increment, // Increase quantity by 1
+              onDecrement: _decrement, // Decrease quantity by 1 (min 0)
             ),
             const SizedBox(height: 30),
 
@@ -361,17 +387,19 @@ class _AddItemsPageState extends State<AddItemsPage> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: _isLoading ? null : _addToCart, // Disable while loading
-                icon: _isLoading 
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Icon(Icons.shopping_cart, color: Colors.white),
+                onPressed: _isLoading
+                    ? null
+                    : _addToCart, // Disable while loading
+                icon: _isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.shopping_cart, color: Colors.white),
                 label: Text(
                   _isLoading ? 'Adding...' : 'Add to Cart',
                   style: const TextStyle(color: Colors.white),
@@ -393,29 +421,39 @@ class _AddItemsPageState extends State<AddItemsPage> {
   }
 }
 
-class ProductDescription extends StatelessWidget {
-  final ValueChanged<String> onDescriptionChanged;
+// Generic labeled input field widget for product description and product price
+// For price it would show a number keyboard
+// Price also has a controller to update its value programmatically from search products
+class LabeledInputField extends StatelessWidget {
+  final String label;
+  final String hint;
+  final TextInputType keyboardType;
+  final ValueChanged<String> onChanged;
+  final TextEditingController? controller;
 
-  const ProductDescription({super.key, required this.onDescriptionChanged});
+  const LabeledInputField({
+    super.key,
+    required this.label,
+    required this.hint,
+    required this.onChanged,
+    this.keyboardType = TextInputType.text,
+    this.controller,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: double.infinity,
-          child: TextField(
-            decoration: const InputDecoration(
-              labelText: 'Product Description',
-              hintText: 'Enter product description',
-              border: OutlineInputBorder(),
-            ),
-            keyboardType: TextInputType.number,
-            onChanged: (value) => onDescriptionChanged(value),
-          ),
+    return SizedBox(
+      width: double.infinity,
+      child: TextField(
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hint,
+          border: const OutlineInputBorder(),
         ),
-      ],
+        keyboardType: keyboardType,
+        onChanged: onChanged,
+        controller: controller,
+      ),
     );
   }
 }
@@ -427,8 +465,9 @@ class ProductDescription extends StatelessWidget {
  * black container with white text. All buttons are arranged in a single row.
  */
 class CategorySelector extends StatelessWidget {
-  final String selectedCategory;              // Currently selected category
-  final ValueChanged<String> onCategorySelected;  // Callback when user selects category
+  final String selectedCategory; // Currently selected category
+  final ValueChanged<String>
+  onCategorySelected; // Callback when user selects category
 
   const CategorySelector({
     super.key,
@@ -450,7 +489,7 @@ class CategorySelector extends StatelessWidget {
       width: double.infinity,
       child: Container(
         decoration: BoxDecoration(
-          color: _categoryContainerColor,  // Black background
+          color: _categoryContainerColor, // Black background
           borderRadius: BorderRadius.circular(12),
         ),
         margin: const EdgeInsets.only(bottom: 20),
@@ -462,9 +501,9 @@ class CategorySelector extends StatelessWidget {
               const Text(
                 'Product Category',
                 style: TextStyle(
-                  fontSize: 16, 
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: _categoryTextColor,  // White text
+                  color: _categoryTextColor, // White text
                 ),
               ),
               const SizedBox(height: 12),
@@ -477,19 +516,23 @@ class CategorySelector extends StatelessWidget {
                     child: ChoiceChip(
                       label: Text(c, style: const TextStyle(fontSize: 13)),
                       selected: isSelected,
-                      selectedColor: Colors.green.shade100,  // Light green when selected
-                      backgroundColor: Colors.white,         // White when not selected
+                      selectedColor:
+                          Colors.green.shade100, // Light green when selected
+                      backgroundColor: Colors.white, // White when not selected
                       labelStyle: TextStyle(
                         color: isSelected
-                            ? Colors.green.shade900  // Dark green text when selected
-                            : Colors.black87,        // Dark text when not selected
+                            ? Colors
+                                  .green
+                                  .shade900 // Dark green text when selected
+                            : Colors.black87, // Dark text when not selected
                         fontWeight: isSelected
                             ? FontWeight.bold
                             : FontWeight.normal,
                       ),
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       visualDensity: VisualDensity.compact,
-                      onSelected: (_) => onCategorySelected(c), // Call callback when tapped
+                      onSelected: (_) =>
+                          onCategorySelected(c), // Call callback when tapped
                     ),
                   );
                 }).toList(),
@@ -509,8 +552,9 @@ class CategorySelector extends StatelessWidget {
  * Helps users indicate how important each item is for their shopping trip.
  */
 class PrioritySelector extends StatelessWidget {
-  final String selectedPriority;              // Currently selected priority
-  final ValueChanged<String> onPrioritySelected;  // Callback when user selects priority
+  final String selectedPriority; // Currently selected priority
+  final ValueChanged<String>
+  onPrioritySelected; // Callback when user selects priority
 
   const PrioritySelector({
     super.key,
@@ -531,7 +575,7 @@ class PrioritySelector extends StatelessWidget {
       width: double.infinity,
       child: Container(
         decoration: BoxDecoration(
-          color: _priorityContainerColor,  // Black background
+          color: _priorityContainerColor, // Black background
           borderRadius: BorderRadius.circular(12),
         ),
         margin: const EdgeInsets.only(bottom: 20),
@@ -544,9 +588,9 @@ class PrioritySelector extends StatelessWidget {
               const Text(
                 'Product Priority',
                 style: TextStyle(
-                  fontSize: 16, 
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: _priorityTextColor,  // White text
+                  color: _priorityTextColor, // White text
                 ),
               ),
               const SizedBox(height: 12),
@@ -557,15 +601,17 @@ class PrioritySelector extends StatelessWidget {
                   return ChoiceChip(
                     label: Text(p),
                     selected: isSelected,
-                    selectedColor: Colors.blue.shade100,   // Light blue when selected
-                    backgroundColor: Colors.white,         // White when not selected
+                    selectedColor:
+                        Colors.blue.shade100, // Light blue when selected
+                    backgroundColor: Colors.white, // White when not selected
                     labelStyle: TextStyle(
                       color: isSelected ? Colors.blue.shade900 : Colors.black87,
                       fontWeight: isSelected
                           ? FontWeight.bold
                           : FontWeight.normal,
                     ),
-                    onSelected: (_) => onPrioritySelected(p), // Call callback when tapped
+                    onSelected: (_) =>
+                        onPrioritySelected(p), // Call callback when tapped
                   );
                 }).toList(),
               ),
@@ -586,9 +632,9 @@ class PrioritySelector extends StatelessWidget {
  * - Current quantity is displayed between the buttons
  */
 class ProductQuantitySelector extends StatelessWidget {
-  final int quantity;                    // Current selected quantity
-  final VoidCallback onIncrement;       // Called when user taps plus button
-  final VoidCallback onDecrement;       // Called when user taps minus button
+  final int quantity; // Current selected quantity
+  final VoidCallback onIncrement; // Called when user taps plus button
+  final VoidCallback onDecrement; // Called when user taps minus button
 
   const ProductQuantitySelector({
     super.key,
@@ -616,29 +662,25 @@ class ProductQuantitySelector extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.remove_circle_outline),
             onPressed: onDecrement,
-            tooltip: 'Decrease quantity',  // Accessibility hint
+            tooltip: 'Decrease quantity', // Accessibility hint
           ),
         // If quantity is 0, add spacing to keep layout consistent
         if (quantity == 0)
           const SizedBox(width: 48), // Same width as IconButton
-        
         // Current quantity display - shows how many items are selected
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
             '$quantity',
-            style: const TextStyle(
-              fontSize: 18, 
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
         ),
-        
+
         // Plus button - always visible so users can add items
         IconButton(
           icon: const Icon(Icons.add_circle_outline),
           onPressed: onIncrement,
-          tooltip: 'Increase quantity',  // Accessibility hint
+          tooltip: 'Increase quantity', // Accessibility hint
         ),
       ],
     );
