@@ -37,12 +37,7 @@ class CartHelper {
    */
   Future<Database> _initDatabase() async {
     String path = join(await getDatabasesPath(), 'cart.db');
-    
-    try {
-      await deleteDatabase(path);
-    } catch (e) {
-    }
-    
+
     return await openDatabase(
       path,
       version: 2,
@@ -110,7 +105,8 @@ class CartHelper {
    * - description: user notes (optional)
    * - upc: barcode for future scanner integration (optional)
    */
-  Future<int> addToCartByName(String name, {
+  Future<int> addToCartByName(
+    String name, {
     double price = 0.0,
     int quantity = 1,
     String? category,
@@ -119,19 +115,19 @@ class CartHelper {
     String? upc,
   }) async {
     final db = await database;
-    
+
     // Check if item already exists in cart (by name)
     final List<Map<String, dynamic>> existing = await db.query(
       'cart_items',
       where: 'name = ?',
       whereArgs: [name],
     );
-    
+
     if (existing.isNotEmpty) {
       // Item exists - update the quantity instead of creating duplicate
       final existingItem = existing.first;
       final newQuantity = (existingItem['quantity'] as int) + quantity;
-      
+
       return await db.update(
         'cart_items',
         {'quantity': newQuantity},
@@ -149,7 +145,7 @@ class CartHelper {
         description: description,
         upc: upc,
       );
-      
+
       return await db.insert('cart_items', cartItem.toMap());
     }
   }
@@ -171,6 +167,28 @@ class CartHelper {
   }
 
   /**
+   * Gets cart items filtered by category
+   * If category is empty, returns all items
+   */
+  Future<List<CartItem>> getCartItemsByCategory(String category) async {
+    final db = await database;
+
+    if (category.isEmpty) {
+      return await getCartItems();
+    }
+
+    final List<Map<String, dynamic>> maps = await db.query(
+      'cart_items',
+      where: 'category = ?',
+      whereArgs: [category.toLowerCase()],
+    );
+
+    return List.generate(maps.length, (i) {
+      return CartItem.fromMap(maps[i]);
+    });
+  }
+
+  /**
    * Removes an item completely from the cart
    * 
    * This deletes the entire cart entry for the given item ID.
@@ -178,11 +196,7 @@ class CartHelper {
    */
   Future<int> removeFromCart(int id) async {
     final db = await database;
-    return await db.delete(
-      'cart_items',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    return await db.delete('cart_items', where: 'id = ?', whereArgs: [id]);
   }
 
   /**
@@ -204,12 +218,12 @@ class CartHelper {
    */
   Future<int> updateQuantity(int id, int newQuantity) async {
     final db = await database;
-    
+
     if (newQuantity <= 0) {
       // If quantity is 0 or negative, remove the item entirely
       return await removeFromCart(id);
     }
-    
+
     return await db.update(
       'cart_items',
       {'quantity': newQuantity},
@@ -227,11 +241,11 @@ class CartHelper {
   Future<double> getCartTotal() async {
     final items = await getCartItems();
     double total = 0.0;
-    
+
     for (final item in items) {
       total += (item.price * item.quantity);
     }
-    
+
     return total;
   }
 
@@ -244,11 +258,11 @@ class CartHelper {
   Future<int> getCartItemCount() async {
     final items = await getCartItems();
     int count = 0;
-    
+
     for (final item in items) {
       count += item.quantity;
     }
-    
+
     return count;
   }
 }

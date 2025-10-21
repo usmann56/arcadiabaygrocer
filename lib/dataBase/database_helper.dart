@@ -17,12 +17,7 @@ class GroceryItem {
 
   // Convert a GroceryItem into a Map
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'name': name,
-      'price': price,
-      'category': category,
-    };
+    return {'id': id, 'name': name, 'price': price, 'category': category};
   }
 
   // Create a GroceryItem from a Map
@@ -58,11 +53,7 @@ class DatabaseHelper {
 
   Future<Database> _initDatabase() async {
     String path = join(await getDatabasesPath(), 'grocery_items.db');
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: _onCreate,
-    );
+    return await openDatabase(path, version: 1, onCreate: _onCreate);
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -231,11 +222,7 @@ class DatabaseHelper {
   // Delete item
   Future<int> deleteItem(int id) async {
     final db = await database;
-    return await db.delete(
-      'grocery_items',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    return await db.delete('grocery_items', where: 'id = ?', whereArgs: [id]);
   }
 
   // Get all categories (excluding null/empty categories)

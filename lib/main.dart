@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'screens/add_item.dart';
 import 'screens/barcode_scanner.dart';
-import 'dataBase/cart_service.dart';  // Cart database service
-import 'models/cart_item.dart';       // Cart item data model
+import 'dataBase/cart_service.dart'; // Cart database service
+import 'models/cart_item.dart'; // Cart item data model
 
 void main() {
   runApp(const MyApp());
@@ -70,9 +70,9 @@ class HomePage extends StatefulWidget {
  * - Navigation to add item and barcode scanner screens
  */
 class _HomePageState extends State<HomePage> {
-  final CartHelper _cartHelper = CartHelper();  // Cart database service
-  List<CartItem> _cartItems = [];               // Current items in cart
-  bool _isLoading = true;                       // Whether we're loading cart data
+  final CartHelper _cartHelper = CartHelper(); // Cart database service
+  List<CartItem> _cartItems = []; // Current items in cart
+  bool _isLoading = true; // Whether we're loading cart data
 
   /**
    * Initialize the screen by loading cart items from database
@@ -80,17 +80,18 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _loadCartItems();  // Load cart items when screen opens
+    _loadCartItems(''); // Load cart items when screen opens
   }
 
   /**
    * Loads cart items from the database
    * 
    * Updates the UI to show current cart contents or handles errors gracefully
+   * category filter: empty string loads all items
    */
-  Future<void> _loadCartItems() async {
+  Future<void> _loadCartItems(String category) async {
     try {
-      final items = await _cartHelper.getCartItems();
+      final items = await _cartHelper.getCartItemsByCategory(category);
       setState(() {
         _cartItems = items;
         _isLoading = false;
@@ -99,9 +100,9 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         _isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading cart: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error loading cart: $e')));
     }
   }
 
@@ -115,10 +116,10 @@ class _HomePageState extends State<HomePage> {
       context,
       MaterialPageRoute(builder: (context) => const AddItemsPage()),
     );
-    
+
     // Always reload cart items when returning from add item screen
     // This ensures the main screen shows the most current cart state
-    _loadCartItems();
+    _loadCartItems('');
   }
 
   /**
@@ -131,10 +132,10 @@ class _HomePageState extends State<HomePage> {
       context,
       MaterialPageRoute(builder: (context) => const BarcodeScannerPage()),
     );
-    
+
     // Always reload cart items when returning from barcode scanner
     // This ensures the main screen shows the most current cart state
-    _loadCartItems();
+    _loadCartItems('');
   }
 
   @override
@@ -181,10 +182,7 @@ class _HomePageState extends State<HomePage> {
                       // Narrow 'filter' container with four buttons
                       Padding(
                         padding: const EdgeInsets.only(bottom: 16),
-                        child: _ActionBar(
-                          onAddItemPressed: _navigateToAddItem,
-                          onBarcodePressed: _navigateToBarcode,
-                        ),
+                        child: _ActionBar(loadCartItems: _loadCartItems),
                       ),
 
                       // Large space in the middle for grocery list
@@ -192,7 +190,7 @@ class _HomePageState extends State<HomePage> {
                         child: _DataList(
                           cartItems: _cartItems,
                           isLoading: _isLoading,
-                          onItemRemoved: _loadCartItems,
+                          onItemRemoved: () => _loadCartItems(''),
                         ),
                       ),
 
@@ -267,45 +265,73 @@ class _ProgressTracker extends StatelessWidget {
   }
 }
 
-class _ActionBar extends StatelessWidget {
-  const _ActionBar({
-    this.onAddItemPressed,
-    this.onBarcodePressed,
-  });
+class _ActionBar extends StatefulWidget {
+  const _ActionBar({this.loadCartItems});
+  final Future<void> Function(String category)? loadCartItems;
 
-  final VoidCallback? onAddItemPressed;
-  final VoidCallback? onBarcodePressed;
+  @override
+  State<_ActionBar> createState() => _ActionBarState();
+}
+
+class _ActionBarState extends State<_ActionBar> {
+  String? _selectedCategory;
+
+  Future<void> _handleCategoryTap(String category) async {
+    // Toggle logic
+    // Need to call load items with empty steing if category is deselected
+    final isSameCategory = _selectedCategory == category;
+
+    setState(() {
+      _selectedCategory = isSameCategory ? null : category;
+    });
+
+    // Call the provided function with empty string if deselected
+    if (widget.loadCartItems != null) {
+      await widget.loadCartItems!(isSameCategory ? '' : category);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Four placeholder filter buttons.
-    final buttons = <Widget>[
-      // Button: Meats
-      _SmallButton(label: 'Meats', icon: Icons.agriculture, onPressed: () {}),
-      // Button: Produce
-      _SmallButton(label: 'Produce', icon: Icons.eco_sharp, onPressed: () {}),
-      // Button: Beverages
-      _SmallButton(
-        label: 'Beverages',
-        icon: Icons.local_drink,
-        onPressed: () {},
-      ),
-      // Button: Misc
-      _SmallButton(
-        label: 'Misc',
-        icon: Icons.question_mark_rounded,
-        onPressed: () {},
-      ),
-    ];
-
     return SizedBox(
       height: 44,
       child: Row(
         children: [
-          for (int i = 0; i < buttons.length; i++) ...[
-            Expanded(child: buttons[i]),
-            if (i != buttons.length - 1) const SizedBox(width: 8),
-          ],
+          Expanded(
+            child: _SmallButton(
+              label: 'Meats',
+              icon: Icons.agriculture,
+              isSelected: _selectedCategory == 'meats',
+              onPressed: () => _handleCategoryTap('meats'),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: _SmallButton(
+              label: 'Produce',
+              icon: Icons.eco_sharp,
+              isSelected: _selectedCategory == 'produce',
+              onPressed: () => _handleCategoryTap('produce'),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: _SmallButton(
+              label: 'Beverages',
+              icon: Icons.local_drink,
+              isSelected: _selectedCategory == 'beverages',
+              onPressed: () => _handleCategoryTap('beverages'),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: _SmallButton(
+              label: 'Misc',
+              icon: Icons.question_mark_rounded,
+              isSelected: _selectedCategory == 'misc',
+              onPressed: () => _handleCategoryTap('misc'),
+            ),
+          ),
         ],
       ),
     );
@@ -317,19 +343,27 @@ class _SmallButton extends StatelessWidget {
     required this.label,
     required this.icon,
     required this.onPressed,
+    this.isSelected = false,
   });
 
   final String label;
   final IconData icon;
   final VoidCallback onPressed;
+  final bool isSelected;
 
   @override
   Widget build(BuildContext context) {
-    // Button widget for items in the filter row.
-    // Using a vertical (column) layout so the label has more room and doesn't overflow.
     return OutlinedButton(
       onPressed: onPressed,
       style: OutlinedButton.styleFrom(
+        backgroundColor: isSelected
+            ? Theme.of(context).colorScheme.primary.withOpacity(0.15)
+            : Colors.transparent,
+        side: BorderSide(
+          color: isSelected
+              ? Theme.of(context).colorScheme.primary
+              : Colors.grey.shade400,
+        ),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         visualDensity: VisualDensity.compact,
       ),
@@ -337,14 +371,25 @@ class _SmallButton extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 18),
+          Icon(
+            icon,
+            size: 18,
+            color: isSelected
+                ? Theme.of(context).colorScheme.primary
+                : Colors.black87,
+          ),
           const SizedBox(height: 4),
           Text(
             label,
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 12),
+            style: TextStyle(
+              fontSize: 12,
+              color: isSelected
+                  ? Theme.of(context).colorScheme.primary
+                  : Colors.black87,
+            ),
           ),
         ],
       ),
@@ -362,9 +407,9 @@ class _SmallButton extends StatelessWidget {
  */
 class _DataList extends StatelessWidget {
   const _DataList({
-    required this.cartItems,    // List of items currently in cart
-    required this.isLoading,    // Whether we're still loading data
-    this.onItemRemoved,         // Callback when user removes an item
+    required this.cartItems, // List of items currently in cart
+    required this.isLoading, // Whether we're still loading data
+    this.onItemRemoved, // Callback when user removes an item
   });
 
   final List<CartItem> cartItems;
@@ -379,14 +424,14 @@ class _DataList extends StatelessWidget {
   Future<void> _removeItem(BuildContext context, CartItem item) async {
     try {
       await CartHelper().removeFromCart(item.id!);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${item.name} removed from cart')),
-      );
-      onItemRemoved?.call();  // Trigger cart refresh
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('${item.name} removed from cart')));
+      onItemRemoved?.call(); // Trigger cart refresh
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error removing item: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error removing item: $e')));
     }
   }
 
@@ -399,127 +444,120 @@ class _DataList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(
-          color: Colors.black,
-          width: 2,
-        ),
+        border: Border.all(color: Colors.black, width: 2),
         borderRadius: BorderRadius.circular(8),
       ),
       child: isLoading
-          ? const Center(
-              child: CircularProgressIndicator(),
-            )
+          ? const Center(child: CircularProgressIndicator())
           : cartItems.isEmpty
-              ? // Empty cart message with helpful instructions
-              const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(32.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.shopping_cart_outlined,
-                          size: 64,
-                          color: Colors.grey,
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'Add groceries to your list',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Add to your Cart or use the barcode scanner to get started',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
+          ? // Empty cart message with helpful instructions
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(32.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.shopping_cart_outlined,
+                      size: 64,
+                      color: Colors.grey,
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      'Add groceries to your list',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Add to your Cart or use the barcode scanner to get started',
+                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : // List of cart items with details and remove buttons
+            ListView.separated(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              itemBuilder: (context, index) {
+                final item = cartItems[index];
+                return ListTile(
+                  // Quantity circle - red for urgent items, grey for regular
+                  leading: CircleAvatar(
+                    backgroundColor: item.priority == 'urgent'
+                        ? Colors.red.shade100
+                        : Colors.grey.shade200,
+                    child: Text(
+                      '${item.quantity}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: item.priority == 'urgent'
+                            ? Colors.red.shade700
+                            : Colors.grey.shade700,
+                      ),
                     ),
                   ),
-                )
-              : // List of cart items with details and remove buttons
-              ListView.separated(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  itemBuilder: (context, index) {
-                    final item = cartItems[index];
-                    return ListTile(
-                      // Quantity circle - red for urgent items, grey for regular
-                      leading: CircleAvatar(
-                        backgroundColor: item.priority == 'urgent' 
-                          ? Colors.red.shade100 
-                          : Colors.grey.shade200,
-                        child: Text(
-                          '${item.quantity}',
+                  // Item name
+                  title: Text(
+                    item.name,
+                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  // Item details: price, category, description
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('\$${item.price.toStringAsFixed(2)} each'),
+                      if (item.category != null)
+                        Text(
+                          item.category!.toUpperCase(),
                           style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: item.priority == 'urgent' 
-                              ? Colors.red.shade700 
-                              : Colors.grey.shade700,
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                      ),
-                      // Item name
-                      title: Text(
-                        item.name,
-                        style: const TextStyle(fontWeight: FontWeight.w500),
-                      ),
-                      // Item details: price, category, description
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('\$${item.price.toStringAsFixed(2)} each'),
-                          if (item.category != null)
-                            Text(
-                              item.category!.toUpperCase(),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey.shade600,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          if (item.description != null && item.description!.isNotEmpty)
-                            Text(
-                              item.description!,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey.shade500,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                        ],
-                      ),
-                      // Total price and delete button
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            '\$${(item.price * item.quantity).toStringAsFixed(2)}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
+                      if (item.description != null &&
+                          item.description!.isNotEmpty)
+                        Text(
+                          item.description!,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade500,
+                            fontStyle: FontStyle.italic,
                           ),
-                          const SizedBox(width: 8),
-                          IconButton(
-                            icon: const Icon(Icons.delete_outline),
-                            onPressed: () => _removeItem(context, item),
-                            color: Colors.red.shade600,
-                          ),
-                        ],
+                        ),
+                    ],
+                  ),
+                  // Total price and delete button
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '\$${(item.price * item.quantity).toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
                       ),
-                    );
-                  },
-                  separatorBuilder: (context, index) => const Divider(),
-                  itemCount: cartItems.length,
-                ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline),
+                        onPressed: () => _removeItem(context, item),
+                        color: Colors.red.shade600,
+                      ),
+                    ],
+                  ),
+                );
+              },
+              separatorBuilder: (context, index) => const Divider(),
+              itemCount: cartItems.length,
+            ),
     );
   }
 }
