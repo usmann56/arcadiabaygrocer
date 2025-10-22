@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'screens/add_item.dart';
 import 'screens/barcode_scanner.dart';
+import 'screens/create_checklist.dart'; // Simple checklist creation
+import 'screens/view_checklist.dart'; // View checklist screen
 import 'dataBase/cart_service.dart'; // Cart database service
 import 'models/cart_item.dart'; // Cart item data model
+import 'models/checklist_item.dart'; // Simple checklist model
 
 void main() {
   runApp(const MyApp());
@@ -73,6 +76,7 @@ class _HomePageState extends State<HomePage> {
   final CartHelper _cartHelper = CartHelper(); // Cart database service
   List<CartItem> _cartItems = []; // Current items in cart
   bool _isLoading = true; // Whether we're loading cart data
+  SimpleChecklist? _activeChecklist; // Current checklist
 
   /**
    * Initialize the screen by loading cart items from database
@@ -138,6 +142,50 @@ class _HomePageState extends State<HomePage> {
     _loadCartItems('');
   }
 
+  /**
+   * Navigates to Create Checklist screen
+   */
+  Future<void> _navigateToCreateChecklist() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const CreateChecklistPage()),
+    );
+
+    if (result != null && result is SimpleChecklist) {
+      setState(() {
+        _activeChecklist = result;
+      });
+    }
+  }
+
+  /**
+   * Handles checklist bar tap - view checklist if active, create if none
+   */
+  Future<void> _handleChecklistBarTap() async {
+    if (_activeChecklist != null) {
+      // Navigate to view checklist screen
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ViewChecklistPage(
+            checklist: _activeChecklist!,
+            cartItems: _cartItems,
+          ),
+        ),
+      );
+      
+      // If a new checklist was created from the view screen, update it
+      if (result != null && result is SimpleChecklist) {
+        setState(() {
+          _activeChecklist = result;
+        });
+      }
+    } else {
+      // No active checklist, navigate to create one
+      _navigateToCreateChecklist();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Responsive sizing so the layout looks consistent on phones and desktops.
@@ -164,19 +212,18 @@ class _HomePageState extends State<HomePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Narrow progression tracker under the title
+                      // Checklist progression tracker
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        child: Column(
-                          children: const [
-                            // simulated progress for checklist progression bar.
-                            _ProgressTracker(progress: 0.45),
-                            SizedBox(height: 8),
-                            Text(
-                              'Progression bar placeholder here - currently at 45%',
-                            ),
-                          ],
-                        ),
+                        child: _activeChecklist == null
+                            ? _CreateChecklistButton(
+                                onPressed: _navigateToCreateChecklist,
+                              )
+                            : _ChecklistProgress(
+                                checklist: _activeChecklist!,
+                                cartItems: _cartItems,
+                                onTap: _handleChecklistBarTap,
+                              ),
                       ),
 
                       // Narrow 'filter' container with four buttons
@@ -598,6 +645,122 @@ class _CornerIconButton extends StatelessWidget {
         onPressed: onPressed,
         tooltip: 'Hover over (or long press) for button action',
       ),
+    );
+  }
+}
+
+/// Widget to show "Create Checklist" button with + icon
+class _CreateChecklistButton extends StatelessWidget {
+  final VoidCallback onPressed;
+
+  const _CreateChecklistButton({required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 50,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.black, width: 2),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(6),
+          child: const Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.add, size: 24, color: Colors.black),
+                SizedBox(width: 8),
+                Text(
+                  'Create Checklist',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Widget to show checklist progress
+class _ChecklistProgress extends StatelessWidget {
+  final SimpleChecklist checklist;
+  final List<CartItem> cartItems;
+  final VoidCallback onTap;
+
+  const _ChecklistProgress({
+    required this.checklist,
+    required this.cartItems,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Calculate progress using actual cart items
+    final progress = checklist.calculateProgress(cartItems);
+    final percentage = (progress * 100).round();
+
+    return Column(
+      children: [
+        // Progress bar (clickable to create new checklist)
+        GestureDetector(
+          onTap: onTap,
+          child: _ProgressTracker(progress: progress),
+        ),
+        const SizedBox(height: 8),
+        // Progress info
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                'Checklist: ${checklist.name}',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            Text(
+              '$percentage% complete',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: progress >= 1.0 ? Colors.green : Colors.grey.shade700,
+              ),
+            ),
+          ],
+        ),
+        if (progress >= 1.0)
+          const Padding(
+            padding: EdgeInsets.only(top: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.check_circle, size: 16, color: Colors.green),
+                SizedBox(width: 4),
+                Text(
+                  'Checklist Complete!',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.green,
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }
