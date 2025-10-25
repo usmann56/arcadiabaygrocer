@@ -6,6 +6,7 @@ import '../dataBase/cart_service.dart';
 import '../components/category_selector.dart';
 import '../components/priority_selector.dart';
 import '../components/quantity_selector.dart';
+import '../components/due_date_selector.dart';
 
 // Color definitions for consistent styling across the add item screen
 const Color _categoryContainerColor =
@@ -57,6 +58,7 @@ class _AddItemsPageState extends State<AddItemsPage> {
   String _selectedPriority =
       'Urgent'; // User's chosen priority (default: Urgent)
   int _quantity = 0; // How many items to buy (starts at 0)
+  DateTime? _dueDate; // When this item needs to be purchased by
 
   // UI state variables
   bool _showSuggestions = false; // Whether to show search results
@@ -183,6 +185,7 @@ class _AddItemsPageState extends State<AddItemsPage> {
         category: _selectedCategory.toLowerCase(),
         priority: _selectedPriority.toLowerCase(),
         description: _productDescription.isEmpty ? null : _productDescription,
+        dueDate: _dueDate,
       );
 
       // If we have a selected grocery item and it doesn't have a category,
@@ -380,6 +383,15 @@ class _AddItemsPageState extends State<AddItemsPage> {
               quantity: _quantity,
               onIncrement: _increment, // Increase quantity by 1
               onDecrement: _decrement, // Decrease quantity by 1 (min 0)
+            ),
+            const SizedBox(height: 20),
+
+            // Due Date Selector - let user choose when item needs to be purchased
+            DueDateSelector(
+              dueDate: _dueDate,
+              onDueDateSelected: (date) {
+                setState(() => _dueDate = date);
+              },
             ),
             const SizedBox(height: 30),
 

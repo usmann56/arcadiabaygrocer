@@ -5,22 +5,24 @@
  * wants to buy, including what it is, how much it costs, and user preferences.
  */
 class CartItem {
-  final int? id;              // Unique database ID (null for new items)
-  final String name;          // Product name (e.g., "Bananas")
-  final String? upc;          // Barcode/UPC code for barcode scanner
-  final double price;         // Price per item in dollars
-  final String? category;     // User-assigned category ("meats", "produce", etc.)
-  final String priority;      // How important this item is ("urgent" or "regular")
-  final int quantity;         // How many of this item to buy
-  final String? description;  // Optional notes about the item
-  final DateTime? addedAt;    // When the item was first added to the cart
-  final bool urgentReminderShown; // Whether the one-time urgent reminder has been shown for this item
+  final int? id; // Unique database ID (null for new items)
+  final String name; // Product name (e.g., "Bananas")
+  final String? upc; // Barcode/UPC code for barcode scanner
+  final double price; // Price per item in dollars
+  final String? category; // User-assigned category ("meats", "produce", etc.)
+  final String priority; // How important this item is ("urgent" or "regular")
+  final int quantity; // How many of this item to buy
+  final String? description; // Optional notes about the item
+  final DateTime? addedAt; // When the item was first added to the cart
+  final bool
+  urgentReminderShown; // Whether the one-time urgent reminder has been shown for this item
+  final DateTime? dueDate; // When this item needs to be purchased by
 
   /**
    * Creates a new CartItem
    * 
    * Required fields: name, price, priority, quantity
-   * Optional fields: id, upc, category, description
+   * Optional fields: id, upc, category, description, dueDate
    */
   CartItem({
     this.id,
@@ -33,6 +35,7 @@ class CartItem {
     this.description,
     this.addedAt,
     this.urgentReminderShown = false,
+    this.dueDate,
   });
 
   /**
@@ -53,6 +56,7 @@ class CartItem {
       'description': description,
       'added_at': addedAt?.millisecondsSinceEpoch,
       'urgent_reminder_shown': urgentReminderShown ? 1 : 0,
+      'due_date': dueDate?.millisecondsSinceEpoch,
     };
   }
 
@@ -75,7 +79,10 @@ class CartItem {
       addedAt: map['added_at'] != null
           ? DateTime.fromMillisecondsSinceEpoch(map['added_at'] as int)
           : null,
-  urgentReminderShown: (map['urgent_reminder_shown'] ?? 0) == 1,
+      urgentReminderShown: (map['urgent_reminder_shown'] ?? 0) == 1,
+      dueDate: map['due_date'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['due_date'] as int)
+          : null,
     );
   }
 
@@ -85,6 +92,6 @@ class CartItem {
    */
   @override
   String toString() {
-    return 'CartItem{id: $id, name: $name, upc: $upc, price: $price, category: $category, priority: $priority, quantity: $quantity, description: $description, addedAt: $addedAt, urgentReminderShown: $urgentReminderShown}';
+    return 'CartItem{id: $id, name: $name, upc: $upc, price: $price, category: $category, priority: $priority, quantity: $quantity, description: $description, addedAt: $addedAt, urgentReminderShown: $urgentReminderShown, dueDate: $dueDate}';
   }
 }

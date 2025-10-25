@@ -6,6 +6,7 @@ import '../components/priority_selector.dart';
 import '../components/quantity_selector.dart';
 import '../dataBase/cart_service.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import '../components/due_date_selector.dart';
 
 class BarcodeScannerPage extends StatefulWidget {
   const BarcodeScannerPage({super.key});
@@ -23,6 +24,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
   String _selectedPriority = 'Urgent';
   int _quantity = 0; // Start at 0, user must actively select quantity
   bool _isLoading = false; // Loading state for add to cart
+  DateTime? _dueDate;
 
   Future<void> _scanBarcode() async {
     final barcode = await Navigator.push(
@@ -131,6 +133,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
         priority: _selectedPriority.toLowerCase(),
         description: _productDescription.isEmpty ? null : _productDescription,
         upc: _barcode, // Save the barcode for future reference
+        dueDate: _dueDate,
       );
 
       // Show success message
@@ -144,12 +147,11 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
       // Return to main screen with success indicator
       // This tells the main screen to refresh the cart
       Navigator.of(context).pop(true);
-      
     } catch (e) {
       setState(() {
         _isLoading = false;
       });
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error adding to cart: $e'),
@@ -214,15 +216,24 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
               onDecrement: _decrement,
             ),
             const SizedBox(height: 30),
+            DueDateSelector(
+              dueDate: _dueDate,
+              onDueDateSelected: (date) {
+                setState(() => _dueDate = date);
+              },
+            ),
+            const SizedBox(height: 30),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: _isLoading ? null : _addToCart, // Disable while loading
-                icon: _isLoading 
+                onPressed: _isLoading
+                    ? null
+                    : _addToCart, // Disable while loading
+                icon: _isLoading
                     ? const SizedBox(
-                        width: 20, 
-                        height: 20, 
-                        child: CircularProgressIndicator(strokeWidth: 2)
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.shopping_cart),
                 label: Text(_isLoading ? 'Adding...' : 'Add to Cart'),
