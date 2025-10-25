@@ -13,6 +13,8 @@ class CartItem {
   final String priority;      // How important this item is ("urgent" or "regular")
   final int quantity;         // How many of this item to buy
   final String? description;  // Optional notes about the item
+  final DateTime? addedAt;    // When the item was first added to the cart
+  final bool urgentReminderShown; // Whether the one-time urgent reminder has been shown for this item
 
   /**
    * Creates a new CartItem
@@ -29,6 +31,8 @@ class CartItem {
     required this.priority,
     required this.quantity,
     this.description,
+    this.addedAt,
+    this.urgentReminderShown = false,
   });
 
   /**
@@ -47,6 +51,8 @@ class CartItem {
       'priority': priority,
       'quantity': quantity,
       'description': description,
+      'added_at': addedAt?.millisecondsSinceEpoch,
+      'urgent_reminder_shown': urgentReminderShown ? 1 : 0,
     };
   }
 
@@ -66,6 +72,10 @@ class CartItem {
       priority: map['priority'],
       quantity: map['quantity'],
       description: map['description'],
+      addedAt: map['added_at'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['added_at'] as int)
+          : null,
+  urgentReminderShown: (map['urgent_reminder_shown'] ?? 0) == 1,
     );
   }
 
@@ -75,6 +85,6 @@ class CartItem {
    */
   @override
   String toString() {
-    return 'CartItem{id: $id, name: $name, upc: $upc, price: $price, category: $category, priority: $priority, quantity: $quantity, description: $description}';
+    return 'CartItem{id: $id, name: $name, upc: $upc, price: $price, category: $category, priority: $priority, quantity: $quantity, description: $description, addedAt: $addedAt, urgentReminderShown: $urgentReminderShown}';
   }
 }

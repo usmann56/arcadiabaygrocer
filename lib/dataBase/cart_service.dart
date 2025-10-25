@@ -40,7 +40,7 @@ class CartHelper {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 4,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -69,7 +69,9 @@ class CartHelper {
         category TEXT,
         priority TEXT,
         description TEXT,
-        upc TEXT
+        upc TEXT,
+        added_at INTEGER,
+        urgent_reminder_shown INTEGER DEFAULT 0
       )
     ''');
   }
@@ -84,6 +86,17 @@ class CartHelper {
     if (oldVersion < 2) {
       // Add UPC column for barcode scanner support
       await db.execute('ALTER TABLE cart_items ADD COLUMN upc TEXT');
+    }
+    if (oldVersion < 3) {
+      // Track when items are added
+      await db.execute('ALTER TABLE cart_items ADD COLUMN added_at INTEGER');
+      // Initialize existing rows with current timestamp
+      final nowMs = DateTime.now().millisecondsSinceEpoch;
+      await db.update('cart_items', {'added_at': nowMs});
+    }
+    if (oldVersion < 4) {
+      // Per-item one-time reminder flag
+      await db.execute('ALTER TABLE cart_items ADD COLUMN urgent_reminder_shown INTEGER DEFAULT 0');
     }
   }
 
@@ -144,6 +157,8 @@ class CartHelper {
         priority: priority ?? 'regular',
         description: description,
         upc: upc,
+        addedAt: DateTime.now(),
+        urgentReminderShown: false,
       );
 
       return await db.insert('cart_items', cartItem.toMap());
@@ -186,6 +201,36 @@ class CartHelper {
     return List.generate(maps.length, (i) {
       return CartItem.fromMap(maps[i]);
     });
+  }
+
+  /// Returns urgent items whose added_at is older than [threshold]
+  Future<List<CartItem>> getUrgentItemsNeedingReminder(Duration threshold) async {
+    final db = await database;
+    final cutoffMs = DateTime.now().subtract(threshold).millisecondsSinceEpoch;
+
+    final List<Map<String, dynamic>> maps = await db.query(
+      'cart_items',
+      where: "LOWER(priority) = 'urgent' AND added_at IS NOT NULL AND added_at <= ? AND (urgent_reminder_shown IS NULL OR urgent_reminder_shown = 0)",
+      whereArgs: [cutoffMs],
+    );
+
+    return List.generate(maps.length, (i) => CartItem.fromMap(maps[i]));
+  }
+
+  /// Marks urgent reminder as shown for the given item IDs
+  Future<void> markUrgentReminderShown(List<int> ids) async {
+    if (ids.isEmpty) return;
+    final db = await database;
+    final batch = db.batch();
+    for (final id in ids) {
+      batch.update(
+        'cart_items',
+        {'urgent_reminder_shown': 1},
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    }
+    await batch.commit(noResult: true);
   }
 
   /**
