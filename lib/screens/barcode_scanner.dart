@@ -87,7 +87,6 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
 
   /**
    * Adds the scanned item to the shopping cart
-   * 
    * This function:
    * 1. Validates that a product was successfully scanned
    * 2. Adds the item to the cart database with UPC/barcode

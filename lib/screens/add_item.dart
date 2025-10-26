@@ -310,7 +310,10 @@ class _AddItemsPageState extends State<AddItemsPage> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Column(
-                      children: _searchResults.map((item) {
+                        children: (_searchResults.length > 3
+                                ? _searchResults.sublist(0, 3)
+                                : _searchResults)
+                            .map((item) {
                         return ListTile(
                           title: Text(item.name),
                           subtitle: Text('\$${item.price.toStringAsFixed(2)}'),

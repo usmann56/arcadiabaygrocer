@@ -160,7 +160,10 @@ class _CreateChecklistPageState extends State<CreateChecklistPage> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Column(
-                      children: _searchResults.map((item) {
+                      children: (_searchResults.length > 3
+                              ? _searchResults.sublist(0, 3)
+                              : _searchResults)
+                          .map((item) {
                         final isAlreadySelected = _selectedItems
                             .any((selectedItem) => selectedItem.id == item.id);
                         

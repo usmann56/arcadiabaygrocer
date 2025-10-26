@@ -12,20 +12,14 @@ import '../models/cart_item.dart';
  * Uses Singleton pattern so there's only one cart instance throughout the app.
  */
 class CartHelper {
-  // Singleton pattern - ensures only one instance exists
   static final CartHelper _instance = CartHelper._internal();
   static Database? _database;
   CartHelper._internal();
 
-  // Factory constructor returns the same instance every time
   factory CartHelper() {
     return _instance;
   }
 
-  /**
-   * Gets the database instance
-   * Creates the database if it doesn't exist yet
-   */
   Future<Database> get database async {
     _database ??= await _initDatabase();
     return _database!;
@@ -33,7 +27,6 @@ class CartHelper {
 
   /**
    * Initializes the cart database
-   * Creates a new database file called 'cart.db'
    */
   Future<Database> _initDatabase() async {
     String path = join(await getDatabasesPath(), 'cart.db');
@@ -48,16 +41,15 @@ class CartHelper {
 
   /**
    * Creates the cart table when database is first created
-   * 
    * Table structure includes:
-   * - id: unique identifier for each cart item
-   * - name: product name
-   * - price: cost per item
-   * - quantity: how many of this item
-   * - category: user-assigned category (optional)
-   * - priority: urgency level (urgent/regular)
-   * - description: user notes (optional)
-   * - upc: barcode for scanning (optional)
+   * id: unique identifier for each cart item
+   * name: product name
+   * price: cost per item
+   * quantity: how many of this item
+   * category: user-assigned category (optional)
+   * priority: urgency level (urgent/regular)
+   * description: user notes (optional)
+   * upc: barcode for scanning (optional)
    */
   Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
@@ -78,9 +70,8 @@ class CartHelper {
 
   /**
    * Handles database upgrades when schema changes
-   * 
    * Currently handles upgrade from version 1 to 2:
-   * - Adds UPC column for barcode scanner support
+   * Adds UPC column for barcode scanner support
    */
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
@@ -105,18 +96,18 @@ class CartHelper {
    * 
    * This is the main function for adding items to cart.
    * It handles:
-   * - Creating new cart entries
-   * - Updating quantities for existing items
-   * - Preventing duplicate entries
+   * Creating new cart entries
+   * Updating quantities for existing items
+   * Preventing duplicate entries
    * 
    * Parameters:
-   * - name: product name (required)
-   * - price: cost per item (optional, defaults to 0.0)
-   * - quantity: how many to add (optional, defaults to 1)
-   * - category: user-chosen category (optional)
-   * - priority: urgency level (optional, defaults to 'regular')
-   * - description: user notes (optional)
-   * - upc: barcode for future scanner integration (optional)
+   * name: product name (required)
+   * price: cost per item (optional, defaults to 0.0)
+   * quantity: how many to add (optional, defaults to 1)
+   * category: user-chosen category (optional)
+   * priority: urgency level (optional, defaults to 'regular')
+   * description: user notes (optional)
+   * upc: barcode for future scanner integration (optional)
    */
   Future<int> addToCartByName(
     String name, {
@@ -167,7 +158,6 @@ class CartHelper {
 
   /**
    * Gets all items currently in the shopping cart
-   * 
    * Returns a list of CartItem objects representing everything
    * the user has added to their cart. Used for displaying
    * the cart contents on the main screen.
@@ -235,7 +225,6 @@ class CartHelper {
 
   /**
    * Removes an item completely from the cart
-   * 
    * This deletes the entire cart entry for the given item ID.
    * Used when user taps the delete button on a cart item.
    */
@@ -246,7 +235,6 @@ class CartHelper {
 
   /**
    * Clears all items from the cart
-   * 
    * Removes everything from the shopping cart.
    * Useful for "start over" functionality or after checkout.
    */
@@ -257,7 +245,6 @@ class CartHelper {
 
   /**
    * Updates the quantity of a specific cart item
-   * 
    * Allows changing how many of an item the user wants to buy
    * without removing and re-adding the item.
    */
@@ -279,7 +266,6 @@ class CartHelper {
 
   /**
    * Gets the total cost of all items in the cart
-   * 
    * Calculates: (price × quantity) for each item, then sums them up.
    * Returns the grand total for the entire shopping cart.
    */
@@ -296,7 +282,6 @@ class CartHelper {
 
   /**
    * Gets the total number of items in the cart
-   * 
    * Counts all individual items (accounting for quantities).
    * For example: 3 apples + 2 oranges = 5 total items.
    */
