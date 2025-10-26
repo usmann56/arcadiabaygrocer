@@ -114,11 +114,12 @@ class _CreateChecklistPageState extends State<CreateChecklistPage> {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
             // Checklist Name
             TextField(
               controller: _nameController,
@@ -143,7 +144,7 @@ class _CreateChecklistPageState extends State<CreateChecklistPage> {
             ),
             const SizedBox(height: 16),
 
-            // Search Results - identical to add_item.dart structure
+            // Search Results - constrained height to avoid overflow
             if (_showSuggestions && _searchResults.isNotEmpty)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -153,39 +154,37 @@ class _CreateChecklistPageState extends State<CreateChecklistPage> {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  // Container with border to visually separate search results
-                  Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      children: (_searchResults.length > 3
-                              ? _searchResults.sublist(0, 3)
-                              : _searchResults)
-                          .map((item) {
-                        final isAlreadySelected = _selectedItems
-                            .any((selectedItem) => selectedItem.id == item.id);
-                        
-                        return ListTile(
-                          title: Text(item.name),
-                          subtitle: Text('\$${item.price.toStringAsFixed(2)}'),
-                          // Show checkmark if this item is selected, plus icon if not
-                          trailing: Icon(
-                            isAlreadySelected 
-                              ? Icons.check_circle 
-                              : Icons.add_circle_outline,
-                            color: isAlreadySelected 
-                              ? Colors.green 
-                              : Colors.black,
-                          ),
-                          // When user taps an item, add it to checklist
-                          onTap: isAlreadySelected 
-                              ? null 
-                              : () => _addItemToChecklist(item),
-                          enabled: !isAlreadySelected,
-                        );
-                      }).toList(),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 200),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.white,
+                      ),
+                      child: ListView.builder(
+                        padding: EdgeInsets.zero,
+                        shrinkWrap: true,
+                        itemCount: _searchResults.length > 5 ? 5 : _searchResults.length,
+                        itemBuilder: (context, index) {
+                          final item = _searchResults[index];
+                          final isAlreadySelected = _selectedItems
+                              .any((selectedItem) => selectedItem.id == item.id);
+
+                          return ListTile(
+                            title: Text(item.name),
+                            subtitle: Text('\$${item.price.toStringAsFixed(2)}'),
+                            trailing: Icon(
+                              isAlreadySelected
+                                  ? Icons.check_circle
+                                  : Icons.add_circle_outline,
+                              color: isAlreadySelected ? Colors.green : Colors.black,
+                            ),
+                            onTap: isAlreadySelected ? null : () => _addItemToChecklist(item),
+                            enabled: !isAlreadySelected,
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ],
@@ -209,47 +208,47 @@ class _CreateChecklistPageState extends State<CreateChecklistPage> {
             const SizedBox(height: 16),
 
             // Selected Items List
-            Expanded(
-              child: _selectedItems.isEmpty
-                  ? const Center(
-                      child: Text(
-                        'No items added yet\nSearch and select items above to build your checklist',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    )
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Selected Items (${_selectedItems.length})',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Expanded(
-                          child: ListView.builder(
-                            itemCount: _selectedItems.length,
-                            itemBuilder: (context, index) {
-                              final item = _selectedItems[index];
-                              return Card(
-                                child: ListTile(
-                                  title: Text(item.name),
-                                  subtitle: Text('\$${item.price.toStringAsFixed(2)}'),
-                                  trailing: IconButton(
-                                    icon: const Icon(Icons.delete, color: Colors.red),
-                                    onPressed: () => _removeItem(index),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
+            if (_selectedItems.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12.0),
+                child: Text(
+                  'No items added yet\nSearch and select items above to build your checklist',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey),
+                ),
+              )
+            else
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Selected Items (${_selectedItems.length})',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                     ),
-            ),
+                  ),
+                  const SizedBox(height: 8),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _selectedItems.length,
+                    itemBuilder: (context, index) {
+                      final item = _selectedItems[index];
+                      return Card(
+                        child: ListTile(
+                          title: Text(item.name),
+                          subtitle: Text('\$${item.price.toStringAsFixed(2)}'),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => _removeItem(index),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
 
             const SizedBox(height: 16),
 
@@ -266,6 +265,7 @@ class _CreateChecklistPageState extends State<CreateChecklistPage> {
           ],
         ),
       ),
+    ),
     );
   }
 }

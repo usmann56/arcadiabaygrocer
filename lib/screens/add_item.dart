@@ -312,10 +312,10 @@ class _AddItemsPageState extends State<AddItemsPage> {
                       border: Border.all(color: Colors.grey.shade300),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Column(
-                        children: (_searchResults.length > 3
-                                ? _searchResults.sublist(0, 3)
-                                : _searchResults)
+          child: Column(
+            children: (_searchResults.length > 5
+                ? _searchResults.sublist(0, 5)
+                : _searchResults)
                             .map((item) {
                         return ListTile(
                           title: Text(item.name),
