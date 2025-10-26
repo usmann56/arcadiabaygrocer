@@ -33,7 +33,7 @@ class CartHelper {
 
     return await openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -63,7 +63,8 @@ class CartHelper {
         description TEXT,
         upc TEXT,
         added_at INTEGER,
-        urgent_reminder_shown INTEGER DEFAULT 0
+        urgent_reminder_shown INTEGER DEFAULT 0,
+        due_date INTEGER
       )
     ''');
   }
@@ -87,7 +88,13 @@ class CartHelper {
     }
     if (oldVersion < 4) {
       // Per-item one-time reminder flag
-      await db.execute('ALTER TABLE cart_items ADD COLUMN urgent_reminder_shown INTEGER DEFAULT 0');
+      await db.execute(
+        'ALTER TABLE cart_items ADD COLUMN urgent_reminder_shown INTEGER DEFAULT 0',
+      );
+    }
+    if (oldVersion < 5) {
+      // Add due date column for tracking when items need to be purchased
+      await db.execute('ALTER TABLE cart_items ADD COLUMN due_date INTEGER');
     }
   }
 
@@ -117,6 +124,7 @@ class CartHelper {
     String? priority = 'regular',
     String? description,
     String? upc,
+    DateTime? dueDate,
   }) async {
     final db = await database;
 
@@ -150,6 +158,7 @@ class CartHelper {
         upc: upc,
         addedAt: DateTime.now(),
         urgentReminderShown: false,
+        dueDate: dueDate,
       );
 
       return await db.insert('cart_items', cartItem.toMap());
@@ -194,13 +203,16 @@ class CartHelper {
   }
 
   /// Returns urgent items whose added_at is older than [threshold]
-  Future<List<CartItem>> getUrgentItemsNeedingReminder(Duration threshold) async {
+  Future<List<CartItem>> getUrgentItemsNeedingReminder(
+    Duration threshold,
+  ) async {
     final db = await database;
     final cutoffMs = DateTime.now().subtract(threshold).millisecondsSinceEpoch;
 
     final List<Map<String, dynamic>> maps = await db.query(
       'cart_items',
-      where: "LOWER(priority) = 'urgent' AND added_at IS NOT NULL AND added_at <= ? AND (urgent_reminder_shown IS NULL OR urgent_reminder_shown = 0)",
+      where:
+          "LOWER(priority) = 'urgent' AND added_at IS NOT NULL AND added_at <= ? AND (urgent_reminder_shown IS NULL OR urgent_reminder_shown = 0)",
       whereArgs: [cutoffMs],
     );
 

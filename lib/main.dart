@@ -135,7 +135,9 @@ class _HomePageState extends State<HomePage> {
   Future<void> _maybeShowUrgentReminder() async {
     if (_urgentReminderInProgress) return; // guard against re-entrancy
     // Use a 7-day threshold; items meeting the condition are shown together in one popup
-    final urgent = await _cartHelper.getUrgentItemsNeedingReminder(const Duration(days: 7));
+    final urgent = await _cartHelper.getUrgentItemsNeedingReminder(
+      const Duration(days: 7),
+    );
     if (urgent.isEmpty) return;
 
     // Build message listing item names
@@ -147,7 +149,9 @@ class _HomePageState extends State<HomePage> {
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          title: const Text("You've marked these items as urgent- need to repurchase?"),
+          title: const Text(
+            "You've marked these items as urgent- need to repurchase?",
+          ),
           content: SingleChildScrollView(child: Text(names)),
           actions: [
             TextButton(
@@ -160,7 +164,10 @@ class _HomePageState extends State<HomePage> {
     );
 
     // Mark these items as shown so they won't trigger again
-    final ids = urgent.where((e) => e.id != null).map((e) => e.id as int).toList();
+    final ids = urgent
+        .where((e) => e.id != null)
+        .map((e) => e.id as int)
+        .toList();
     await _cartHelper.markUrgentReminderShown(ids);
     _urgentReminderInProgress = false;
   }
@@ -179,6 +186,74 @@ class _HomePageState extends State<HomePage> {
     // Always reload cart items when returning from barcode scanner
     // This ensures the main screen shows the most current cart state
     _loadCartItems('');
+  }
+
+  /**
+   * Shows weekly price estimate for items due in the next 7 days
+   * 
+   * Calculates the total cost of items that have due dates within the next week
+   */
+  Future<void> _showWeeklyPriceEstimate() async {
+    try {
+      // Get current date and calculate 7 days from now
+      final now = DateTime.now();
+      final nextWeek = now.add(const Duration(days: 7));
+
+      // Filter items due in the next 7 days
+      final itemsDueThisWeek = _cartItems.where((item) {
+        if (item.dueDate == null) return false;
+        return item.dueDate!.isAfter(now) && item.dueDate!.isBefore(nextWeek);
+      }).toList();
+
+      // Calculate total cost
+      double totalCost = 0.0;
+      for (final item in itemsDueThisWeek) {
+        totalCost += (item.price * item.quantity);
+      }
+
+      // Show dialog with results
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Weekly Price Estimate'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Items due in the next 7 days: ${itemsDueThisWeek.length}'),
+              const SizedBox(height: 8),
+              Text('Total estimated cost: \$${totalCost.toStringAsFixed(2)}'),
+              if (itemsDueThisWeek.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                const Text(
+                  'Items due this week:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                ...itemsDueThisWeek.map(
+                  (item) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Text(
+                      '• ${item.name} - \$${(item.price * item.quantity).toStringAsFixed(2)}',
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error calculating estimate: $e')));
+    }
   }
 
   /**
@@ -212,7 +287,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       );
-      
+
       // If a new checklist was created from the view screen, update it
       if (result != null && result is SimpleChecklist) {
         setState(() {
@@ -298,6 +373,21 @@ class _HomePageState extends State<HomePage> {
                   key: const ValueKey('bottomLeftIcon'),
                   icon: Icons.add_shopping_cart_rounded,
                   onPressed: _navigateToAddItem,
+                ),
+              ),
+            ),
+
+            // Bottom-center weekly price estimator button
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _WeeklyEstimatorButton(
+                    onPressed: _showWeeklyPriceEstimate,
+                  ),
                 ),
               ),
             ),
@@ -618,6 +708,15 @@ class _DataList extends StatelessWidget {
                             fontStyle: FontStyle.italic,
                           ),
                         ),
+                      if (item.dueDate != null)
+                        Text(
+                          'Due: ${item.dueDate!.day}/${item.dueDate!.month}/${item.dueDate!.year}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.orange.shade700,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                     ],
                   ),
                   // Total price and delete button
@@ -800,6 +899,44 @@ class _ChecklistProgress extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+/**
+ * _WeeklyEstimatorButton - Button for calculating weekly price estimates
+ * 
+ * Displays a button with calculator icon and "Weekly Estimate" text.
+ * Styled consistently with other corner buttons but with different colors.
+ */
+class _WeeklyEstimatorButton extends StatelessWidget {
+  const _WeeklyEstimatorButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        // Blue background to distinguish from other buttons
+        color: Colors.blue.shade700,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(6),
+      child: IconButton(
+        icon: const Icon(Icons.calculate, color: Colors.white),
+        padding: const EdgeInsets.all(12),
+        constraints: const BoxConstraints(minWidth: 56, minHeight: 56),
+        onPressed: onPressed,
+        tooltip: 'Calculate weekly price estimate',
+      ),
     );
   }
 }
