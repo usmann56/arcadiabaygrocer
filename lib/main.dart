@@ -103,7 +103,7 @@ class _HomePageState extends State<HomePage> {
       });
       // After loading the cart, check if we need to show an urgent reminder
       if (mounted) {
-        _maybeShowUrgentReminder();
+          // Removed urgent priority weekly popup logic
       }
     } catch (e) {
       setState(() {
@@ -133,43 +133,10 @@ class _HomePageState extends State<HomePage> {
 
   /// Shows a one-time per-item popup reminding about urgent items added over a week ago
   Future<void> _maybeShowUrgentReminder() async {
-    if (_urgentReminderInProgress) return; // guard against re-entrancy
-    // Use a 7-day threshold; items meeting the condition are shown together in one popup
-    final urgent = await _cartHelper.getUrgentItemsNeedingReminder(
-      const Duration(days: 7),
-    );
-    if (urgent.isEmpty) return;
 
-    // Build message listing item names
-    final names = urgent.map((e) => '• ${e.name}').join('\n');
 
-    if (!mounted) return;
-    _urgentReminderInProgress = true;
-    await showDialog<void>(
-      context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          title: const Text(
-            "You've marked these items as urgent- need to repurchase?",
-          ),
-          content: SingleChildScrollView(child: Text(names)),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Dismiss'),
-            ),
-          ],
-        );
-      },
-    );
 
-    // Mark these items as shown so they won't trigger again
-    final ids = urgent
-        .where((e) => e.id != null)
-        .map((e) => e.id as int)
-        .toList();
-    await _cartHelper.markUrgentReminderShown(ids);
-    _urgentReminderInProgress = false;
+    // Removed urgent priority weekly popup logic
   }
 
   /**

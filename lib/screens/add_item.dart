@@ -4,7 +4,7 @@ import '../dataBase/database_helper.dart';
 import '../models/cart_item.dart';
 import '../dataBase/cart_service.dart';
 import '../components/category_selector.dart';
-import '../components/priority_selector.dart';
+// Removed priority selector import
 import '../components/quantity_selector.dart';
 import '../components/due_date_selector.dart';
 
@@ -12,9 +12,7 @@ import '../components/due_date_selector.dart';
 const Color _categoryContainerColor =
     Colors.black; // Background for category section
 const Color _categoryTextColor = Colors.white; // Text color in category section
-const Color _priorityContainerColor =
-    Colors.black; // Background for priority section
-const Color _priorityTextColor = Colors.white; // Text color in priority section
+// Removed priority color constants
 const Color _addToCartButtonColor =
     Colors.black; // Background for add to cart button
 
@@ -23,7 +21,7 @@ const Color _addToCartButtonColor =
  * 
  * This screen allows users to:
  * 1. Search for products in the grocery database
- * 2. Select quantity, category, and priority for items
+ * 2. Select quantity and category for items
  * 3. Add items to their shopping cart
  * 4. Add optional descriptions for items
  */
@@ -41,7 +39,7 @@ class AddItemsPage extends StatefulWidget {
  * Handles user interactions like:
  * - Typing in the search box
  * - Selecting products from search results
- * - Choosing quantity, category, and priority
+ * - Choosing quantity and category
  * - Adding items to cart
  */
 class _AddItemsPageState extends State<AddItemsPage> {
@@ -55,8 +53,7 @@ class _AddItemsPageState extends State<AddItemsPage> {
   String _productName = ''; // Name of the selected product
   double _productPrice = 0.0; // Price of the selected product
   String _selectedCategory = 'Meats'; // User's chosen category (default: Meats)
-  String _selectedPriority =
-      'Urgent'; // User's chosen priority (default: Urgent)
+  // Removed priority selection state
   int _quantity = 0; // How many items to buy (starts at 0)
   DateTime? _dueDate; // When this item needs to be purchased by
 
@@ -183,7 +180,6 @@ class _AddItemsPageState extends State<AddItemsPage> {
         price: _productPrice,
         quantity: _quantity,
         category: _selectedCategory.toLowerCase(),
-        priority: _selectedPriority.toLowerCase(),
         description: _productDescription.isEmpty ? null : _productDescription,
         dueDate: _dueDate,
       );
@@ -373,13 +369,7 @@ class _AddItemsPageState extends State<AddItemsPage> {
               },
             ),
 
-            // Priority Selector - let user choose item priority (black container)
-            PrioritySelector(
-              selectedPriority: _selectedPriority,
-              onPrioritySelected: (priority) {
-                setState(() => _selectedPriority = priority);
-              },
-            ),
+            // Priority Selector removed
 
             // Quantity Selector - let user choose how many items to buy
             ProductQuantitySelector(
@@ -560,83 +550,7 @@ class CategorySelector extends StatelessWidget {
   }
 }
 
-/**
- * PrioritySelector - Widget for choosing item priority
- * 
- * Displays priority options (Urgent, Regular) in a black container with white text.
- * Helps users indicate how important each item is for their shopping trip.
- */
-class PrioritySelector extends StatelessWidget {
-  final String selectedPriority; // Currently selected priority
-  final ValueChanged<String>
-  onPrioritySelected; // Callback when user selects priority
-
-  const PrioritySelector({
-    super.key,
-    required this.selectedPriority,
-    required this.onPrioritySelected,
-  });
-
-  /**
-   * Builds the priority selector UI
-   * 
-   * Creates a black container with two priority options: Urgent and Regular
-   */
-  @override
-  Widget build(BuildContext context) {
-    final priorities = ['Urgent', 'Regular'];
-
-    return SizedBox(
-      width: double.infinity,
-      child: Container(
-        decoration: BoxDecoration(
-          color: _priorityContainerColor, // Black background
-          borderRadius: BorderRadius.circular(12),
-        ),
-        margin: const EdgeInsets.only(bottom: 20),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                'Product Priority',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: _priorityTextColor, // White text
-                ),
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 10,
-                children: priorities.map((p) {
-                  final isSelected = selectedPriority == p;
-                  return ChoiceChip(
-                    label: Text(p),
-                    selected: isSelected,
-                    selectedColor:
-                        Colors.blue.shade100, // Light blue when selected
-                    backgroundColor: Colors.white, // White when not selected
-                    labelStyle: TextStyle(
-                      color: isSelected ? Colors.blue.shade900 : Colors.black87,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                    ),
-                    onSelected: (_) =>
-                        onPrioritySelected(p), // Call callback when tapped
-                  );
-                }).toList(),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
+// PrioritySelector widget removed
 
 /**
  * ProductQuantitySelector - Widget for selecting how many items to add
