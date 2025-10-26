@@ -8,10 +8,6 @@ import '../components/category_selector.dart';
 import '../components/quantity_selector.dart';
 import '../components/due_date_selector.dart';
 
-// Color definitions for consistent styling across the add item screen
-const Color _categoryContainerColor =
-    Colors.black; // Background for category section
-const Color _categoryTextColor = Colors.white; // Text color in category section
 // Removed priority color constants
 const Color _addToCartButtonColor =
     Colors.black; // Background for add to cart button
@@ -308,37 +304,41 @@ class _AddItemsPageState extends State<AddItemsPage> {
                       border: Border.all(color: Colors.grey.shade300),
                       borderRadius: BorderRadius.circular(8),
                     ),
-          child: Column(
-            children: (_searchResults.length > 5
-                ? _searchResults.sublist(0, 5)
-                : _searchResults)
-                            .map((item) {
-                        return ListTile(
-                          title: Text(item.name),
-                          subtitle: Text('\$${item.price.toStringAsFixed(2)}'),
-                          // Show checkmark if this item is selected, plus icon if not
-                          trailing: Icon(
-                            _selectedGroceryItem?.id == item.id
-                                ? Icons.check_circle
-                                : Icons.add_circle_outline,
-                            color: _selectedGroceryItem?.id == item.id
-                                ? Colors.green
-                                : Colors.black,
-                          ),
-                          // When user taps an item, select it and hide suggestions
-                          onTap: () {
-                            setState(() {
-                              _selectedGroceryItem = item;
-                              _productName = item.name;
-                              _searchController.text = item.name;
-                              _showSuggestions = false;
-                              _productPrice = item.price;
-                              _priceController.text = _productPrice
-                                  .toStringAsFixed(2);
-                            });
-                          },
-                        );
-                      }).toList(),
+                    child: Column(
+                      children:
+                          (_searchResults.length > 5
+                                  ? _searchResults.sublist(0, 5)
+                                  : _searchResults)
+                              .map((item) {
+                                return ListTile(
+                                  title: Text(item.name),
+                                  subtitle: Text(
+                                    '\$${item.price.toStringAsFixed(2)}',
+                                  ),
+                                  // Show checkmark if this item is selected, plus icon if not
+                                  trailing: Icon(
+                                    _selectedGroceryItem?.id == item.id
+                                        ? Icons.check_circle
+                                        : Icons.add_circle_outline,
+                                    color: _selectedGroceryItem?.id == item.id
+                                        ? Colors.green
+                                        : Colors.black,
+                                  ),
+                                  // When user taps an item, select it and hide suggestions
+                                  onTap: () {
+                                    setState(() {
+                                      _selectedGroceryItem = item;
+                                      _productName = item.name;
+                                      _searchController.text = item.name;
+                                      _showSuggestions = false;
+                                      _productPrice = item.price;
+                                      _priceController.text = _productPrice
+                                          .toStringAsFixed(2);
+                                    });
+                                  },
+                                );
+                              })
+                              .toList(),
                     ),
                   ),
                 ],
@@ -361,7 +361,7 @@ class _AddItemsPageState extends State<AddItemsPage> {
               ),
             const SizedBox(height: 20),
 
-            // Category Selector - let user choose product category (black container)
+            // Category Selector - let user choose product category
             CategorySelector(
               selectedCategory: _selectedCategory,
               onCategorySelected: (category) {
@@ -369,7 +369,14 @@ class _AddItemsPageState extends State<AddItemsPage> {
               },
             ),
 
-            // Priority Selector removed
+            // Due Date Selector - let user choose when item needs to be purchased again
+            DueDateSelector(
+              dueDate: _dueDate,
+              onDueDateSelected: (date) {
+                setState(() => _dueDate = date);
+              },
+            ),
+            const SizedBox(height: 30),
 
             // Quantity Selector - let user choose how many items to buy
             ProductQuantitySelector(
@@ -378,15 +385,6 @@ class _AddItemsPageState extends State<AddItemsPage> {
               onDecrement: _decrement, // Decrease quantity by 1 (min 0)
             ),
             const SizedBox(height: 20),
-
-            // Due Date Selector - let user choose when item needs to be purchased
-            DueDateSelector(
-              dueDate: _dueDate,
-              onDueDateSelected: (date) {
-                setState(() => _dueDate = date);
-              },
-            ),
-            const SizedBox(height: 30),
 
             // Add to Cart Button - main action button (black background)
             SizedBox(
@@ -459,159 +457,6 @@ class LabeledInputField extends StatelessWidget {
         onChanged: onChanged,
         controller: controller,
       ),
-    );
-  }
-}
-
-/**
- * CategorySelector - Widget for choosing product category
- * 
- * Displays category options (Meats, Produce, Beverages, Misc) in a 
- * black container with white text. All buttons are arranged in a single row.
- */
-class CategorySelector extends StatelessWidget {
-  final String selectedCategory; // Currently selected category
-  final ValueChanged<String>
-  onCategorySelected; // Callback when user selects category
-
-  const CategorySelector({
-    super.key,
-    required this.selectedCategory,
-    required this.onCategorySelected,
-  });
-
-  /**
-   * Builds the category selector UI
-   * 
-   * Creates a black container with white text containing four category buttons
-   * arranged in a single horizontal row
-   */
-  @override
-  Widget build(BuildContext context) {
-    final categories = ['Meats', 'Produce', 'Beverages', 'Misc'];
-
-    return SizedBox(
-      width: double.infinity,
-      child: Container(
-        decoration: BoxDecoration(
-          color: _categoryContainerColor, // Black background
-          borderRadius: BorderRadius.circular(12),
-        ),
-        margin: const EdgeInsets.only(bottom: 20),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Text(
-                'Product Category',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: _categoryTextColor, // White text
-                ),
-              ),
-              const SizedBox(height: 12),
-              // Row keeps all buttons on same line
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: categories.map((c) {
-                  final isSelected = selectedCategory == c;
-                  return Flexible(
-                    child: ChoiceChip(
-                      label: Text(c, style: const TextStyle(fontSize: 13)),
-                      selected: isSelected,
-                      selectedColor:
-                          Colors.green.shade100, // Light green when selected
-                      backgroundColor: Colors.white, // White when not selected
-                      labelStyle: TextStyle(
-                        color: isSelected
-                            ? Colors
-                                  .green
-                                  .shade900 // Dark green text when selected
-                            : Colors.black87, // Dark text when not selected
-                        fontWeight: isSelected
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                      ),
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      visualDensity: VisualDensity.compact,
-                      onSelected: (_) =>
-                          onCategorySelected(c), // Call callback when tapped
-                    ),
-                  );
-                }).toList(),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// PrioritySelector widget removed
-
-/**
- * ProductQuantitySelector - Widget for selecting how many items to add
- * 
- * Displays quantity controls with smart button visibility:
- * - Minus button only appears when quantity is 1 or more
- * - Plus button is always visible to allow adding items
- * - Current quantity is displayed between the buttons
- */
-class ProductQuantitySelector extends StatelessWidget {
-  final int quantity; // Current selected quantity
-  final VoidCallback onIncrement; // Called when user taps plus button
-  final VoidCallback onDecrement; // Called when user taps minus button
-
-  const ProductQuantitySelector({
-    super.key,
-    required this.quantity,
-    required this.onIncrement,
-    required this.onDecrement,
-  });
-
-  /**
-   * Builds the quantity selector UI
-   * 
-   * Creates a row with:
-   * - Minus button (only visible when quantity > 0)
-   * - Quantity display
-   * - Plus button (always visible)
-   */
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // Minus button - only show when quantity is 1 or more
-        // This prevents users from going below 0 and keeps UI clean when starting
-        if (quantity > 0)
-          IconButton(
-            icon: const Icon(Icons.remove_circle_outline),
-            onPressed: onDecrement,
-            tooltip: 'Decrease quantity', // Accessibility hint
-          ),
-        // If quantity is 0, add spacing to keep layout consistent
-        if (quantity == 0)
-          const SizedBox(width: 48), // Same width as IconButton
-        // Current quantity display - shows how many items are selected
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            '$quantity',
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-        ),
-
-        // Plus button - always visible so users can add items
-        IconButton(
-          icon: const Icon(Icons.add_circle_outline),
-          onPressed: onIncrement,
-          tooltip: 'Increase quantity', // Accessibility hint
-        ),
-      ],
     );
   }
 }
