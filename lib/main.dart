@@ -633,16 +633,12 @@ class _DataList extends StatelessWidget {
                 return ListTile(
                   // Quantity circle - red for urgent items, grey for regular
                   leading: CircleAvatar(
-                    backgroundColor: item.priority == 'urgent'
-                        ? Colors.red.shade100
-                        : Colors.grey.shade200,
+                    backgroundColor: Colors.black,
                     child: Text(
                       '${item.quantity}',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: item.priority == 'urgent'
-                            ? Colors.red.shade700
-                            : Colors.grey.shade700,
+                        color: Colors.white,
                       ),
                     ),
                   ),

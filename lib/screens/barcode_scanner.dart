@@ -2,7 +2,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../components/category_selector.dart';
-import '../components/priority_selector.dart';
 import '../components/quantity_selector.dart';
 import '../dataBase/cart_service.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -21,7 +20,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
   String _productName = '';
   String _productDescription = '';
   String _selectedCategory = 'Meats';
-  String _selectedPriority = 'Urgent';
+  // Removed priority selection state
   int _quantity = 0; // Start at 0, user must actively select quantity
   bool _isLoading = false; // Loading state for add to cart
   DateTime? _dueDate;
@@ -46,7 +45,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
         debugPrint(
           'Added $_productName (barcode: $_barcode) - '
           'Quantity: $_quantity, Category: $_selectedCategory, '
-          'Priority: $_selectedPriority, Description: $_productDescription',
+          'Description: $_productDescription',
         );
       }
     }
@@ -129,7 +128,6 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
         price: 0.0, // Barcode API doesn't provide price - user can edit later
         quantity: _quantity,
         category: _selectedCategory.toLowerCase(),
-        priority: _selectedPriority.toLowerCase(),
         description: _productDescription.isEmpty ? null : _productDescription,
         upc: _barcode, // Save the barcode for future reference
         dueDate: _dueDate,
@@ -171,14 +169,15 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
             // Scan Barcode Button
             ElevatedButton.icon(
               onPressed: _scanBarcode,
-              icon: const Icon(Icons.qr_code_scanner),
-              label: const Text('Scan Barcode'),
+              icon: const Icon(Icons.qr_code_scanner, color: Colors.white),
+              label: const Text('Scan Barcode', style: TextStyle(color: Colors.white)),
               style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
                 padding: const EdgeInsets.symmetric(
                   vertical: 14,
                   horizontal: 20,
                 ),
-                textStyle: const TextStyle(fontSize: 16),
+                textStyle: const TextStyle(fontSize: 16, color: Colors.white),
               ),
             ),
             const SizedBox(height: 20),
@@ -201,13 +200,11 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
               onCategorySelected: (category) {
                 setState(() => _selectedCategory = category);
               },
+              containerColor: Colors.black,
+              textColor: Colors.black,
+              labelColor: Colors.white,
             ),
-            PrioritySelector(
-              selectedPriority: _selectedPriority,
-              onPrioritySelected: (priority) {
-                setState(() => _selectedPriority = priority);
-              },
-            ),
+            // PrioritySelector removed
             const SizedBox(height: 20),
             ProductQuantitySelector(
               quantity: _quantity,
@@ -232,13 +229,14 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
                     ? const SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                       )
-                    : const Icon(Icons.shopping_cart),
-                label: Text(_isLoading ? 'Adding...' : 'Add to Cart'),
+                    : const Icon(Icons.shopping_cart, color: Colors.white),
+                label: Text(_isLoading ? 'Adding...' : 'Add to Cart', style: const TextStyle(color: Colors.white)),
                 style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  textStyle: const TextStyle(fontSize: 18),
+                  textStyle: const TextStyle(fontSize: 18, color: Colors.white),
                 ),
               ),
             ),
