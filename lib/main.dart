@@ -577,6 +577,16 @@ class _DataList extends StatelessWidget {
     }
   }
 
+  bool isDueToday(DateTime? dueDate) {
+    if (dueDate == null) return false; // handle null case
+
+    final now = DateTime.now();
+
+    return dueDate.year == now.year &&
+        dueDate.month == now.month &&
+        dueDate.day == now.day;
+  }
+
   /**
    * Builds the cart display UI
    * 
@@ -632,7 +642,9 @@ class _DataList extends StatelessWidget {
                 return ListTile(
                   // Quantity circle - red for urgent items, grey for regular
                   leading: CircleAvatar(
-                    backgroundColor: Colors.black,
+                    backgroundColor: isDueToday(item.dueDate)
+                        ? Colors.red.shade700
+                        : Colors.grey.shade700,
                     child: Text(
                       '${item.quantity}',
                       style: const TextStyle(
