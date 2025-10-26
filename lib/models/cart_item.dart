@@ -16,7 +16,8 @@ class CartItem {
   final DateTime? addedAt; // When the item was first added to the cart
   final bool
   urgentReminderShown; // Whether the one-time urgent reminder has been shown for this item
-  final DateTime? dueDate; // When this item needs to be purchased by
+  final DateTime?
+  dueDate; // When this item needs to be purchased again by the user
 
   /**
    * Creates a new CartItem

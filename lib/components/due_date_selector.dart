@@ -42,20 +42,11 @@ class DueDateSelector extends StatelessWidget {
     onDueDateSelected(null);
   }
 
-  /**
-   * Builds the due date selector UI
-   * 
-   * Creates a black container with date selection controls
-   */
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.black, // Black background
-          borderRadius: BorderRadius.circular(12),
-        ),
+      child: Card(
         margin: const EdgeInsets.only(bottom: 20),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -63,12 +54,8 @@ class DueDateSelector extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const Text(
-                'Due Date (Optional)',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white, // White text
-                ),
+                'Due Again At (Optional)',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               Row(

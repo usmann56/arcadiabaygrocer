@@ -103,7 +103,7 @@ class _HomePageState extends State<HomePage> {
       });
       // After loading the cart, check if we need to show an urgent reminder
       if (mounted) {
-          // Removed urgent priority weekly popup logic
+        // Removed urgent priority weekly popup logic
       }
     } catch (e) {
       setState(() {
@@ -133,9 +133,6 @@ class _HomePageState extends State<HomePage> {
 
   /// Shows a one-time per-item popup reminding about urgent items added over a week ago
   Future<void> _maybeShowUrgentReminder() async {
-
-
-
     // Removed urgent priority weekly popup logic
   }
 
@@ -187,7 +184,9 @@ class _HomePageState extends State<HomePage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Items due in the next 7 days: ${itemsDueThisWeek.length}'),
+              Text(
+                'Items due again in the next 7 days: ${itemsDueThisWeek.length}',
+              ),
               const SizedBox(height: 8),
               Text('Total estimated cost: \$${totalCost.toStringAsFixed(2)}'),
               if (itemsDueThisWeek.isNotEmpty) ...[

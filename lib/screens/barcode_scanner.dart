@@ -169,10 +169,9 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
             // Scan Barcode Button
             ElevatedButton.icon(
               onPressed: _scanBarcode,
-              icon: const Icon(Icons.qr_code_scanner, color: Colors.white),
-              label: const Text('Scan Barcode', style: TextStyle(color: Colors.white)),
+              icon: const Icon(Icons.qr_code_scanner),
+              label: const Text('Scan Barcode'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
                 padding: const EdgeInsets.symmetric(
                   vertical: 14,
                   horizontal: 20,
@@ -200,23 +199,20 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
               onCategorySelected: (category) {
                 setState(() => _selectedCategory = category);
               },
-              containerColor: Colors.black,
-              textColor: Colors.black,
-              labelColor: Colors.white,
             ),
             // PrioritySelector removed
             const SizedBox(height: 20),
-            ProductQuantitySelector(
-              quantity: _quantity,
-              onIncrement: _increment,
-              onDecrement: _decrement,
-            ),
-            const SizedBox(height: 30),
             DueDateSelector(
               dueDate: _dueDate,
               onDueDateSelected: (date) {
                 setState(() => _dueDate = date);
               },
+            ),
+            const SizedBox(height: 30),
+            ProductQuantitySelector(
+              quantity: _quantity,
+              onIncrement: _increment,
+              onDecrement: _decrement,
             ),
             const SizedBox(height: 30),
             SizedBox(
@@ -229,10 +225,16 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
                     ? const SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
                     : const Icon(Icons.shopping_cart, color: Colors.white),
-                label: Text(_isLoading ? 'Adding...' : 'Add to Cart', style: const TextStyle(color: Colors.white)),
+                label: Text(
+                  _isLoading ? 'Adding...' : 'Add to Cart',
+                  style: const TextStyle(color: Colors.white),
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,
                   padding: const EdgeInsets.symmetric(vertical: 14),
