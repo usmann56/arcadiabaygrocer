@@ -12,6 +12,9 @@ Presentation: https://drive.google.com/file/d/1k8ovYW4bCdnBbYkLGx5VN9h5C9PW5VGY/
 - Asked how to show items underneath a category when it's button is clicked (Implemented filter logic for cart items)
   Why?: Needed for organization of items, and give the user the abillity to browse the items they added by their given categories.
 
+- Asked which flutter library to use for barcode scanning and which public REST API to use to get product information.
+  Why?: GPT gave us a bunch of options and the choose the one most suitable for our usecase.
+
 2025-10-22
 - Asked to switch the checklist to utilize actual database items instead of strings.
   Why?: Grammar errors, or a misspelling of an item in the checklist search resulted in no progression of the checklist bar, as the checklist has no way of telling if the item searched for there is the same as an item in the database. Using DB items only prevents this.
