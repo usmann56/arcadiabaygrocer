@@ -1,5 +1,5 @@
 AI Log (Copilot)
-
+Presentation: https://drive.google.com/file/d/1k8ovYW4bCdnBbYkLGx5VN9h5C9PW5VGY/view?usp=sharing
 
 2025-10-18
 - Asked to create base database for grocery items and implemented item search logic on the add item page
