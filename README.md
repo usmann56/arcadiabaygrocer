@@ -1,5 +1,8 @@
-AI Log (Copilot)
 Presentation: https://drive.google.com/file/d/1k8ovYW4bCdnBbYkLGx5VN9h5C9PW5VGY/view?usp=sharing
+
+Powerpoint Slide Deck: https://studentgsu-my.sharepoint.com/:p:/r/personal/kharmon15_student_gsu_edu/_layouts/15/Doc.aspx?sourcedoc=%7B37AEBA03-8904-4718-8173-A8805891D250%7D&file=MAD%20Project%201.pptx&wdLOR=c73E9DA8A-CE8B-CF47-A343-BEC9D7F6A8F0&fromShare=true&action=edit&mobileredirect=true
+
+AI Log (Copilot)
 
 2025-10-18
 - Asked to create base database for grocery items and implemented item search logic on the add item page
