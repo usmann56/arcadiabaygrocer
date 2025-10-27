@@ -125,6 +125,7 @@ class DatabaseHelper {
       {'name': 'Paper Towels', 'price': 7.99},
       {'name': 'Dish Soap', 'price': 2.99},
       {'name': 'Laundry Detergent', 'price': 9.99},
+      {'name': 'Sweet & Salty nut Chewy Granola Bars ALMOND', 'price': 4.99},
     ];
 
     Batch batch = db.batch();
